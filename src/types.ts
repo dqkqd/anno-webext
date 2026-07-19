@@ -52,7 +52,7 @@ export type AnnoOptions<Memory, Storable> = {
 
 export type Anno<M> = {
 	annotate: () => Promise<DomAnnotation<M> | undefined>;
-	restore: () => Promise<Annotation<M>[]>;
+	restore: () => Promise<DomAnnotation<M>[]>;
 	readAll: () => Promise<Annotations<M>>;
 	updateMetadata: (annotationId: UUID, updateFn: (m: M) => M) => Promise<Annotation<M>>;
 };
