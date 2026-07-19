@@ -73,9 +73,6 @@ test('update metadata', async ({ annotatedUrls, context, popupUrl }) => {
 
 	// update the metadata number
 	await page.locator('li > button').first().click();
-	await page.waitForLoadState();
 
-	const newMetadata = await page.locator('li > span:nth-child(2)').textContent();
-	const newMetadataNumber = Number(newMetadata);
-	expect(newMetadataNumber).toStrictEqual(metadataNumber + 1);
+	await expect(page.locator('li > span:nth-child(2)')).toHaveText(String(metadataNumber + 1));
 });
