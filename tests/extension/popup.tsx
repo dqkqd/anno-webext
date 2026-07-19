@@ -7,14 +7,14 @@ import { anno } from './utils';
 function Popup() {
 	const [annotations, setAnnotations] = useState<Annotations<number>>({});
 	useEffect(() => {
-		anno.readAll().then(setAnnotations);
+		anno.popup.readAll().then(setAnnotations);
 	}, []);
 
 	const entries = Object.entries(annotations);
 
 	async function updateAnnoMetadata(url: string, index: number) {
 		const old = annotations[url][index];
-		const newAnnotation = await anno.updateMetadata(old.id, (metadata) => metadata + 1);
+		const newAnnotation = await anno.popup.updateMetadata(old.id, (metadata) => metadata + 1);
 		const newAnnotations = produce(annotations, (next) => {
 			next[url][index] = newAnnotation;
 		});

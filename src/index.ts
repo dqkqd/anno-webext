@@ -1,6 +1,7 @@
 import { decodeDom } from './codec';
 import { getNodeByXPath } from './location';
 import { normalizeUrl } from './normalize-url';
+import { queryDomAnnotations, recordDomAnnotation } from './registry';
 import {
 	create,
 	getStoredAnnotation,
@@ -8,7 +9,15 @@ import {
 	readAll,
 	updateMetadata,
 } from './store';
-import type { Anno, AnnoOptions, Annotation, Annotations, DomAnnotation, UUID } from './types';
+import type {
+	Anno,
+	AnnoContent,
+	AnnoOptions,
+	AnnoPopup,
+	Annotations,
+	DomAnnotation,
+	UUID,
+} from './types';
 
 const STORE_FORMAT_VERSION = chrome.runtime.getManifest().version;
 
@@ -42,6 +51,8 @@ export function annotate<M>(createMetadata: () => M): DomAnnotation<M> | undefin
 	highlights.add(annotation.range);
 	highlightRegistry.set(ANNOTATION_CLASS, highlights);
 	selection.removeAllRanges();
+
+	recordDomAnnotation(annotation);
 	return annotation;
 }
 
@@ -61,14 +72,16 @@ export function getAnnotationRangeAtPoint(x: number, y: number): Range | undefin
 	}
 }
 
-export async function initAnnotations<M, S>(decodeMetadata: (s: S) => M): Promise<Annotation<M>[]> {
+export async function initAnnotations<M, S>(
+	decodeMetadata: (s: S) => M,
+): Promise<DomAnnotation<M>[]> {
 	const annotations = await restoreAnnotations(decodeMetadata);
 	await scrollToAnnotation();
 	return annotations;
 }
 
 // TODO: this function only run in the content script!
-async function restoreAnnotations<M, S>(decodeMetadata: (s: S) => M): Promise<Annotation<M>[]> {
+async function restoreAnnotations<M, S>(decodeMetadata: (s: S) => M): Promise<DomAnnotation<M>[]> {
 	const normalizedUrl = normalizeUrl(location.href);
 	const allContexts = await getStoredAnnotations<S>();
 	const contextsInUrl = allContexts[normalizedUrl];
@@ -76,7 +89,7 @@ async function restoreAnnotations<M, S>(decodeMetadata: (s: S) => M): Promise<An
 		return [];
 	}
 
-	const annotations: Annotation<M>[] = [];
+	const annotations: DomAnnotation<M>[] = [];
 	const highlights = highlightRegistry.get(ANNOTATION_CLASS) ?? new Highlight();
 	for (const c of contextsInUrl) {
 		const annotation = decodeDom(c, decodeMetadata);
@@ -88,10 +101,12 @@ async function restoreAnnotations<M, S>(decodeMetadata: (s: S) => M): Promise<An
 		if (validRange) {
 			highlights.add(annotation.range);
 			annotations.push(annotation);
+			recordDomAnnotation(annotation);
 		}
 		// TODO: handle deleted / invalid annotation!
 	}
 	highlightRegistry.set(ANNOTATION_CLASS, highlights);
+
 	return annotations;
 }
 
@@ -162,7 +177,7 @@ function createAnnotationFromSelection<M>(
 }
 
 export function createAnno<M, S>(options: AnnoOptions<M, S>): Anno<M> {
-	return {
+	const content: AnnoContent<M> = {
 		annotate: async (): Promise<DomAnnotation<M> | undefined> => {
 			const annotation = annotate(options.createMetadata);
 			if (!annotation) {
@@ -171,9 +186,15 @@ export function createAnno<M, S>(options: AnnoOptions<M, S>): Anno<M> {
 			await create(annotation, options.encodeMetadata);
 			return annotation;
 		},
-		restore: async (): Promise<Annotation<M>[]> => {
+		restore: async (): Promise<DomAnnotation<M>[]> => {
 			return await initAnnotations(options.decodeMetadata);
 		},
+		query: (queryOption) => {
+			return queryDomAnnotations(queryOption);
+		},
+	};
+
+	const popup: AnnoPopup<M> = {
 		readAll: async (): Promise<Annotations<M>> => {
 			return await readAll(options.decodeMetadata);
 		},
@@ -185,5 +206,9 @@ export function createAnno<M, S>(options: AnnoOptions<M, S>): Anno<M> {
 				updateFn,
 			);
 		},
+	};
+	return {
+		content,
+		popup,
 	};
 }
