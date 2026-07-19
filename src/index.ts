@@ -12,12 +12,18 @@ import type {
 	UUID,
 } from './types';
 
+export type {
+	Anno,
+	AnnoOptions,
+	Annotation,
+	Annotations,
+	DomAnnotation,
+} from './types';
+
 const STORE_FORMAT_VERSION = chrome.runtime.getManifest().version;
 
 const ANNOTATION_CLASS = 'anno--styles';
 const ANNOTATION_HASH_ANCHOR = 'anno-record-id';
-
-export type { Annotation, Annotations } from './types';
 
 /**
  *

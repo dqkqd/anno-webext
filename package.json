@@ -1,6 +1,6 @@
 {
 	"name": "anno-webext",
-	"version": "0.0.1",
+	"version": "0.0.2",
 	"description": "Annotation library for web extension",
 	"repository": {
 		"type": "git",
