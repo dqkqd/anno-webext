@@ -1,23 +1,19 @@
 import { decodeDom } from './codec';
 import { getNodeByXPath } from './location';
 import { normalizeUrl } from './normalize-url';
-import { create, getStoredAnnotation, getStoredAnnotations, readAll } from './store';
-import type {
-	Anno,
-	AnnoOptions,
-	Annotation,
-	Annotations,
-	DefaultAnnoOptions,
-	DomAnnotation,
-	UUID,
-} from './types';
+import {
+	create,
+	getStoredAnnotation,
+	getStoredAnnotations,
+	readAll,
+	updateMetadata,
+} from './store';
+import type { Anno, AnnoOptions, Annotation, Annotations, DomAnnotation, UUID } from './types';
 
 const STORE_FORMAT_VERSION = chrome.runtime.getManifest().version;
 
 const ANNOTATION_CLASS = 'anno--styles';
 const ANNOTATION_HASH_ANCHOR = 'anno-record-id';
-
-export type { Annotation, Annotations } from './types';
 
 /**
  *
@@ -165,47 +161,29 @@ function createAnnotationFromSelection<M>(
 	};
 }
 
-export function createAnno(): Anno<unknown>;
-export function createAnno<M, S>(options: AnnoOptions<M, S>): Anno<M>;
-export function createAnno<M, S>(options?: AnnoOptions<M, S>): Anno<M> | Anno<unknown> {
-	if (options) {
-		return {
-			annotate: async (): Promise<DomAnnotation<M> | undefined> => {
-				const annotation = annotate(options.createMetadata);
-				if (!annotation) {
-					return;
-				}
-				await create(annotation, options.encodeMetadata);
-				return annotation;
-			},
-			restore: async (): Promise<Annotation<M>[]> => {
-				return await initAnnotations(options.decodeMetadata);
-			},
-			readAll: async (): Promise<Annotations<M>> => {
-				return await readAll(options.decodeMetadata);
-			},
-		};
-	} else {
-		const defaultOptions: DefaultAnnoOptions = {
-			encodeMetadata: (m) => m,
-			decodeMetadata: (s) => s,
-			createMetadata: () => ({}),
-		};
-		return {
-			annotate: async (): Promise<DomAnnotation<unknown> | undefined> => {
-				const annotation = annotate(defaultOptions.createMetadata);
-				if (!annotation) {
-					return;
-				}
-				await create(annotation, defaultOptions.encodeMetadata);
-				return annotation;
-			},
-			restore: async (): Promise<Annotation<unknown>[]> => {
-				return await initAnnotations(defaultOptions.decodeMetadata);
-			},
-			readAll: async (): Promise<Annotations<unknown>> => {
-				return await readAll(defaultOptions.decodeMetadata);
-			},
-		};
-	}
+export function createAnno<M, S>(options: AnnoOptions<M, S>): Anno<M> {
+	return {
+		annotate: async (): Promise<DomAnnotation<M> | undefined> => {
+			const annotation = annotate(options.createMetadata);
+			if (!annotation) {
+				return;
+			}
+			await create(annotation, options.encodeMetadata);
+			return annotation;
+		},
+		restore: async (): Promise<Annotation<M>[]> => {
+			return await initAnnotations(options.decodeMetadata);
+		},
+		readAll: async (): Promise<Annotations<M>> => {
+			return await readAll(options.decodeMetadata);
+		},
+		updateMetadata: async (annotationId: UUID, updateFn: (m: M) => M) => {
+			return await updateMetadata(
+				annotationId,
+				options.encodeMetadata,
+				options.decodeMetadata,
+				updateFn,
+			);
+		},
+	};
 }

@@ -1,4 +1,5 @@
-import { Annotations } from 'anno-webext';
+import type { Annotations } from 'anno-webext/types';
+import { produce } from 'immer';
 import { useEffect, useState } from 'react';
 import { createRoot } from 'react-dom/client';
 import { anno } from './utils';
@@ -11,6 +12,15 @@ function Popup() {
 
 	const entries = Object.entries(annotations);
 
+	async function updateAnnoMetadata(url: string, index: number) {
+		const old = annotations[url][index];
+		const newAnnotation = await anno.updateMetadata(old.id, (metadata) => metadata + 1);
+		const newAnnotations = produce(annotations, (next) => {
+			next[url][index] = newAnnotation;
+		});
+		setAnnotations(newAnnotations);
+	}
+
 	return (
 		<>
 			{entries.length === 0
@@ -19,11 +29,11 @@ function Popup() {
 						<div key={url}>
 							<h3>{url}</h3>
 							<ul>
-								{annos.map((a) => (
+								{annos.map((a, index) => (
 									<li key={a.id}>
-										{a.text}
-										<br />
-										{JSON.stringify(a.metadata)}
+										<span>{a.text}</span>
+										<span>{a.metadata}</span>
+										<button onClick={() => updateAnnoMetadata(url, index)}>Update metadata</button>
 									</li>
 								))}
 							</ul>

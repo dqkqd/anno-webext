@@ -40,3 +40,38 @@ test('basic popup', async ({ annotatedUrls, context, popupUrl }) => {
 	await expect(page.locator('body')).toContainText(urls[1]);
 	await expect(page.locator('body')).toContainText('Two');
 });
+
+test('update metadata', async ({ annotatedUrls, context, popupUrl }) => {
+	const page = await context.newPage();
+	const urls = await annotatedUrls(
+		`
+  <html>
+    <body>
+      <h1>Page1<h1>
+      <p>One one</p>
+    </body>
+  </html>
+`,
+		`
+  <html>
+    <body>
+      <h1>Page2<h1>
+      <p>Two two</p>
+    </body>
+  </html>
+`,
+	);
+	await page.goto(urls[0]);
+	await annotateText(page, 'one');
+
+	await page.goto(popupUrl);
+	// await page.pause();
+	const metadata = await page.locator('li > span:nth-child(2)').textContent();
+	const metadataNumber = Number(metadata);
+	expect(metadataNumber).not.toBeNaN();
+
+	// update the metadata number
+	await page.locator('li > button').first().click();
+
+	await expect(page.locator('li > span:nth-child(2)')).toHaveText(String(metadataNumber + 1));
+});
