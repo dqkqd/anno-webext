@@ -58,7 +58,7 @@ export type DomAnnotationQueryOptions = {
 export type AnnoContent<M> = {
 	annotate: () => Promise<DomAnnotation<M> | undefined>;
 	restore: () => Promise<DomAnnotation<M>[]>;
-	// query: (options: DomAnnotationQueryOptions) => Promise<DomAnnotation<M>[]>;
+	query: (options: DomAnnotationQueryOptions) => DomAnnotation<M>[];
 };
 
 export type AnnoPopup<M> = {

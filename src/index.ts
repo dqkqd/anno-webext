@@ -1,6 +1,7 @@
 import { decodeDom } from './codec';
 import { getNodeByXPath } from './location';
 import { normalizeUrl } from './normalize-url';
+import { queryDomAnnotations, recordDomAnnotation } from './registry';
 import {
 	create,
 	getStoredAnnotation,
@@ -50,6 +51,8 @@ export function annotate<M>(createMetadata: () => M): DomAnnotation<M> | undefin
 	highlights.add(annotation.range);
 	highlightRegistry.set(ANNOTATION_CLASS, highlights);
 	selection.removeAllRanges();
+
+	recordDomAnnotation(annotation);
 	return annotation;
 }
 
@@ -98,10 +101,12 @@ async function restoreAnnotations<M, S>(decodeMetadata: (s: S) => M): Promise<Do
 		if (validRange) {
 			highlights.add(annotation.range);
 			annotations.push(annotation);
+			recordDomAnnotation(annotation);
 		}
 		// TODO: handle deleted / invalid annotation!
 	}
 	highlightRegistry.set(ANNOTATION_CLASS, highlights);
+
 	return annotations;
 }
 
@@ -183,6 +188,9 @@ export function createAnno<M, S>(options: AnnoOptions<M, S>): Anno<M> {
 		},
 		restore: async (): Promise<DomAnnotation<M>[]> => {
 			return await initAnnotations(options.decodeMetadata);
+		},
+		query: (queryOption) => {
+			return queryDomAnnotations(queryOption);
 		},
 	};
 
