@@ -1,0 +1,44 @@
+name: anno-webext
+on:
+  pull_request:
+    branches:
+      - main
+  push:
+    branches:
+      - main
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+    - &checkout
+      uses: actions/checkout@v7
+    - &setup-node
+      uses: actions/setup-node@v7
+      with:
+         node-version-file: package.json
+         cache: npm
+         cache-dependency-path: package-lock.json
+    - run: npm ci
+    - run: npx playwright install --with-deps
+    - run: npm run test
+
+  format:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+    - *checkout
+    - *setup-node
+    - run: npm ci
+    - run: npm run format:check
+
+  lint:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+    - *checkout
+    - *setup-node
+    - run: npm ci
+    - run: npm run lint
