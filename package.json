@@ -1,9 +1,11 @@
 {
-	"private": true,
 	"name": "anno-webext",
 	"version": "0.0.1",
 	"description": "Annotation library for web extension",
-	"repository": "github:dqkqd/anno-webext",
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/dqkqd/anno-webext.git"
+	},
 	"author": "Khanh Duong",
 	"license": "MIT",
 	"keywords": [
@@ -21,16 +23,12 @@
 		"build:debug": "vite build --minify=false --sourcemap=inline",
 		"build:test": "npm run build && vite build -c vite.config.test.ts",
 		"build:test:debug": "npm run build:debug && vite build -c vite.config.test.ts --minify=false --sourcemap=inline",
-
 		"lint": "npm run build && eslint .",
 		"lint:fix": "eslint --fix .",
-
 		"format": "biome check --write --linter-enabled=false",
 		"format:check": "biome check --linter-enabled=false",
-
 		"test": "npm run build:test && playwright test",
 		"test:debug": "npm run build:test:debug && playwright test --ui --headed",
-
 		"web-ext:firefox": "npm run build:test:debug && web-ext run --source-dir ./tests/dist --start-url https://en.wikipedia.org/wiki/Alan_Turing",
 		"web-ext:chrome": "npm run web-ext:firefox -- --target chromium"
 	},
@@ -40,6 +38,7 @@
 			"import": "./dist/anno-webext.js"
 		}
 	},
+	"files": ["./dist/index.d.ts", "./dist/anno-webext.js"],
 	"engines": {
 		"node": ">= 26",
 		"npm": ">= 11"
