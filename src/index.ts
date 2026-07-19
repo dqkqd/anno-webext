@@ -4,9 +4,9 @@ import { normalizeUrl } from './normalize-url';
 import { create, getStoredAnnotation, getStoredAnnotations, readAll } from './store';
 import type {
 	Anno,
+	AnnoOptions,
 	Annotation,
 	Annotations,
-	AnnoOptions,
 	DefaultAnnoOptions,
 	DomAnnotation,
 	UUID,
