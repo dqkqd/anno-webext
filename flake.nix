@@ -25,7 +25,6 @@
             playwright-driver.browsers
           ];
           packages = with pkgs; [
-            bashInteractive
             firefox
             google-chrome
             typescript-go
