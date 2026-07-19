@@ -10,6 +10,9 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        browser: [firefox, chromium]
     steps:
     - &checkout
       uses: actions/checkout@v7
@@ -20,8 +23,8 @@ jobs:
          cache: npm
          cache-dependency-path: package-lock.json
     - run: npm ci
-    - run: npx playwright install --with-deps
-    - run: npm run test
+    - run: npx playwright install --with-deps ${{ matrix.browser }}
+    - run: npm run test -- --project=${{ matrix.browser }}
 
   format:
     runs-on: ubuntu-latest
