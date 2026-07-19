@@ -1,6 +1,6 @@
+import { produce } from 'immer';
 import { useEffect, useState } from 'react';
 import { createRoot } from 'react-dom/client';
-import { produce } from 'immer';
 import './content-script.css';
 import type { Annotation } from 'anno-webext/types';
 import { anno } from './utils';
