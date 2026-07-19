@@ -38,6 +38,7 @@
 			"import": "./dist/anno-webext.js"
 		}
 	},
+	"files": ["./dist/index.d.ts", "./dist/anno-webext.js"],
 	"engines": {
 		"node": ">= 26",
 		"npm": ">= 11"
