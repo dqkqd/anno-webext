@@ -57,11 +57,10 @@ export async function create<M, S>(
 	await chrome.storage.local.set({ highlights: storedAnnotations });
 }
 
-// TODO: check if needed
 export async function updateMetadata<M, S>(
 	annotationId: UUID,
-	decodeMetadata: (s: S) => M,
 	encodeMetadata: (m: M) => S,
+	decodeMetadata: (s: S) => M,
 	updateFn: (m: M) => M,
 ): Promise<Annotation<M>> {
 	const storedAnnotations = await getStoredAnnotations<S>();
