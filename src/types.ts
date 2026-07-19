@@ -44,15 +44,15 @@ export interface StoredAnnotation<S> extends IAnnotation<S> {
 	scrollElement: StoredNode;
 }
 
-export type AnnotOptions<Memory, Storable> = {
+export type AnnoOptions<Memory, Storable> = {
 	encodeMetadata: (m: Memory) => Storable;
 	decodeMetadata: (s: Storable) => Memory;
 	createMetadata: () => Memory;
 };
 
-export type DefaultAnnotOptions = AnnotOptions<unknown, unknown>;
+export type DefaultAnnoOptions = AnnoOptions<unknown, unknown>;
 
-export type Annot<M> = {
+export type Anno<M> = {
 	annotate: () => Promise<DomAnnotation<M> | undefined>;
 	restore: () => Promise<Annotation<M>[]>;
 	readAll: () => Promise<Annotations<M>>;

@@ -1,18 +1,18 @@
 import { useEffect, useState } from 'react';
 import { createRoot } from 'react-dom/client';
 import './content-script.css';
-import type { Annotation } from 'annot';
-import { annot } from './utils';
+import type { Annotation } from 'anno-webext';
+import { anno } from './utils';
 
-function Annots() {
+function Annos() {
 	const [annotations, setAnnotations] = useState<Annotation<number>[]>([]);
 	useEffect(() => {
-		annot.restore().then(setAnnotations);
+		anno.restore().then(setAnnotations);
 	}, []);
 
 	useEffect(() => {
 		const handler = () => {
-			annot.annotate().then((a) => a && setAnnotations((prev) => [...prev, a]));
+			anno.annotate().then((a) => a && setAnnotations((prev) => [...prev, a]));
 		};
 		document.addEventListener('mouseup', handler);
 		return () => document.removeEventListener('mouseup', handler);
@@ -30,7 +30,7 @@ function Annots() {
 }
 
 const container = document.createElement('div');
-container.id = 'all-annots';
+container.id = 'all-annos';
 document.body.appendChild(container);
 
-createRoot(container).render(<Annots />);
+createRoot(container).render(<Annos />);

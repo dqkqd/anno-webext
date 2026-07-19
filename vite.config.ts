@@ -6,9 +6,9 @@ export default defineConfig({
 	build: {
 		lib: {
 			entry: resolve(import.meta.dirname, 'src/index.ts'),
-			name: 'annot',
+			name: 'anno-webext',
 			formats: ['es'],
-			fileName: 'annot',
+			fileName: 'anno-webext',
 		},
 		emptyOutDir: true,
 	},
