@@ -8,7 +8,15 @@ import {
 	readAll,
 	updateMetadata,
 } from './store';
-import type { Anno, AnnoOptions, Annotations, DomAnnotation, UUID } from './types';
+import type {
+	Anno,
+	AnnoContent,
+	AnnoOptions,
+	AnnoPopup,
+	Annotations,
+	DomAnnotation,
+	UUID,
+} from './types';
 
 const STORE_FORMAT_VERSION = chrome.runtime.getManifest().version;
 
@@ -164,7 +172,7 @@ function createAnnotationFromSelection<M>(
 }
 
 export function createAnno<M, S>(options: AnnoOptions<M, S>): Anno<M> {
-	return {
+	const content: AnnoContent<M> = {
 		annotate: async (): Promise<DomAnnotation<M> | undefined> => {
 			const annotation = annotate(options.createMetadata);
 			if (!annotation) {
@@ -176,6 +184,9 @@ export function createAnno<M, S>(options: AnnoOptions<M, S>): Anno<M> {
 		restore: async (): Promise<DomAnnotation<M>[]> => {
 			return await initAnnotations(options.decodeMetadata);
 		},
+	};
+
+	const popup: AnnoPopup<M> = {
 		readAll: async (): Promise<Annotations<M>> => {
 			return await readAll(options.decodeMetadata);
 		},
@@ -187,5 +198,9 @@ export function createAnno<M, S>(options: AnnoOptions<M, S>): Anno<M> {
 				updateFn,
 			);
 		},
+	};
+	return {
+		content,
+		popup,
 	};
 }

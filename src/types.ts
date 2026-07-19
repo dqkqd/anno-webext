@@ -50,9 +50,23 @@ export type AnnoOptions<Memory, Storable> = {
 	createMetadata: () => Memory;
 };
 
-export type Anno<M> = {
+export type DomAnnotationQueryOptions = {
+	x: number;
+	y: number;
+};
+
+export type AnnoContent<M> = {
 	annotate: () => Promise<DomAnnotation<M> | undefined>;
 	restore: () => Promise<DomAnnotation<M>[]>;
+	// query: (options: DomAnnotationQueryOptions) => Promise<DomAnnotation<M>[]>;
+};
+
+export type AnnoPopup<M> = {
 	readAll: () => Promise<Annotations<M>>;
 	updateMetadata: (annotationId: UUID, updateFn: (m: M) => M) => Promise<Annotation<M>>;
+};
+
+export type Anno<M> = {
+	content: AnnoContent<M>;
+	popup: AnnoPopup<M>;
 };

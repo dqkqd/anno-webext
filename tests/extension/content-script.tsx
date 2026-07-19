@@ -8,12 +8,12 @@ import { anno } from './utils';
 function Annos() {
 	const [annotations, setAnnotations] = useState<Annotation<number>[]>([]);
 	useEffect(() => {
-		anno.restore().then(setAnnotations);
+		anno.content.restore().then(setAnnotations);
 	}, []);
 
 	useEffect(() => {
 		const handler = () => {
-			anno.annotate().then((a) => a && setAnnotations((prev) => [...prev, a]));
+			anno.content.annotate().then((a) => a && setAnnotations((prev) => [...prev, a]));
 		};
 		document.addEventListener('mouseup', handler);
 		return () => document.removeEventListener('mouseup', handler);
@@ -21,7 +21,7 @@ function Annos() {
 
 	async function updateMetadata(index: number) {
 		const old = annotations[index];
-		const newAnnotation = await anno.updateMetadata(old.id, (m) => m + 1);
+		const newAnnotation = await anno.popup.updateMetadata(old.id, (m) => m + 1);
 		const newAnnotations = produce(annotations, (next) => {
 			next[index] = newAnnotation;
 		});
