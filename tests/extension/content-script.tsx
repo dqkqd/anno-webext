@@ -7,6 +7,8 @@ import { anno } from './utils';
 
 function Annos() {
 	const [annotations, setAnnotations] = useState<Annotation<number>[]>([]);
+	const [hoverValue, setHoverValue] = useState<string>('');
+
 	useEffect(() => {
 		anno.content.restore().then(setAnnotations);
 	}, []);
@@ -19,6 +21,19 @@ function Annos() {
 		return () => document.removeEventListener('mouseup', handler);
 	}, []);
 
+	useEffect(() => {
+		const handler = (e: MouseEvent) => {
+			const annotations = anno.content.query({ x: e.clientX, y: e.clientY });
+			if (annotations.length) {
+				setHoverValue(annotations[0].text);
+			} else {
+				setHoverValue('');
+			}
+		};
+		document.addEventListener('mousemove', handler);
+		return () => document.removeEventListener('mousemove', handler);
+	}, []);
+
 	async function updateMetadata(index: number) {
 		const old = annotations[index];
 		const newAnnotation = await anno.popup.updateMetadata(old.id, (m) => m + 1);
@@ -29,15 +44,18 @@ function Annos() {
 	}
 
 	return (
-		<ul>
-			{annotations.map((a, index) => (
-				<li key={a.id}>
-					<a href={a.annotationUrl}>{a.text}</a>
-					<span>{a.metadata}</span>
-					<button onClick={() => updateMetadata(index)}>Update metadata</button>
-				</li>
-			))}
-		</ul>
+		<>
+			<ul>
+				{annotations.map((a, index) => (
+					<li key={a.id}>
+						<a href={a.annotationUrl}>{a.text}</a>
+						<span>{a.metadata}</span>
+						<button onClick={() => updateMetadata(index)}>Update metadata</button>
+					</li>
+				))}
+			</ul>
+			<div id='hover'>{hoverValue}</div>
+		</>
 	);
 }
 
