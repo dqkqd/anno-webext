@@ -1,4 +1,3 @@
-import { meta } from '@typescript-eslint/parser';
 import { expect, test } from './fixtures';
 import { annotateText } from './utils';
 
