@@ -3,19 +3,19 @@ import { getNodeByXPath } from './location';
 import { normalizeUrl } from './normalize-url';
 import { create, getStoredAnnotation, getStoredAnnotations, readAll } from './store';
 import type {
-	Annot,
+	Anno,
+	AnnoOptions,
 	Annotation,
 	Annotations,
-	AnnotOptions,
-	DefaultAnnotOptions,
+	DefaultAnnoOptions,
 	DomAnnotation,
 	UUID,
 } from './types';
 
 const STORE_FORMAT_VERSION = chrome.runtime.getManifest().version;
 
-const ANNOTATION_CLASS = 'annot--styles';
-const ANNOTATION_HASH_ANCHOR = 'annot-record-id';
+const ANNOTATION_CLASS = 'anno--styles';
+const ANNOTATION_HASH_ANCHOR = 'anno-record-id';
 
 export type { Annotation, Annotations } from './types';
 
@@ -165,9 +165,9 @@ function createAnnotationFromSelection<M>(
 	};
 }
 
-export function createAnnot(): Annot<unknown>;
-export function createAnnot<M, S>(options: AnnotOptions<M, S>): Annot<M>;
-export function createAnnot<M, S>(options?: AnnotOptions<M, S>): Annot<M> | Annot<unknown> {
+export function createAnno(): Anno<unknown>;
+export function createAnno<M, S>(options: AnnoOptions<M, S>): Anno<M>;
+export function createAnno<M, S>(options?: AnnoOptions<M, S>): Anno<M> | Anno<unknown> {
 	if (options) {
 		return {
 			annotate: async (): Promise<DomAnnotation<M> | undefined> => {
@@ -186,7 +186,7 @@ export function createAnnot<M, S>(options?: AnnotOptions<M, S>): Annot<M> | Anno
 			},
 		};
 	} else {
-		const defaultOptions: DefaultAnnotOptions = {
+		const defaultOptions: DefaultAnnoOptions = {
 			encodeMetadata: (m) => m,
 			decodeMetadata: (s) => s,
 			createMetadata: () => ({}),

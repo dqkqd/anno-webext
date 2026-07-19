@@ -9,7 +9,7 @@ async function waitAnnotation(page: Page) {
 	// wait to make sure browser has loaded the annotation!
 	await page.waitForFunction(
 		() => {
-			const annotation = CSS.highlights?.get('annot--styles');
+			const annotation = CSS.highlights?.get('anno--styles');
 			return annotation !== undefined;
 		},
 		null,
@@ -18,7 +18,7 @@ async function waitAnnotation(page: Page) {
 }
 
 export async function getAllAnnotatedUrls(page: Page): Promise<{ url: string; text: string }[]> {
-	const res = await page.locator('#all-annots a').evaluateAll((anchors) => {
+	const res = await page.locator('#all-annos a').evaluateAll((anchors) => {
 		return anchors.map((a) => ({
 			url: (a as HTMLAnchorElement).href,
 			text: a.textContent,
@@ -30,7 +30,7 @@ export async function getAllAnnotatedUrls(page: Page): Promise<{ url: string; te
 async function assertAnnotations(page: Page, expect: Expect, texts: string[]) {
 	await waitAnnotation(page);
 	const annotatedText = await page.evaluate(() => {
-		const annotation = CSS.highlights.get('annot--styles');
+		const annotation = CSS.highlights.get('anno--styles');
 		if (!annotation) {
 			return null;
 		}

@@ -1,5 +1,5 @@
 {
-  description = "Annot - annotation library for web extension";
+  description = "Anno-webext - annotation library for web extension";
   inputs.nixpkgs.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
   inputs.systems.url = "github:nix-systems/default";
   inputs.flake-utils = {
@@ -25,7 +25,6 @@
             playwright-driver.browsers
           ];
           packages = with pkgs; [
-            bashInteractive
             firefox
             google-chrome
             typescript-go

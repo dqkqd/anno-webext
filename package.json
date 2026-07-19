@@ -1,10 +1,20 @@
 {
 	"private": true,
-	"name": "annot",
+	"name": "anno-webext",
 	"version": "0.0.1",
 	"description": "Annotation library for web extension",
-	"repository": "github:dqkqd/annot",
+	"repository": "github:dqkqd/anno-webext",
+	"author": "Khanh Duong",
 	"license": "MIT",
+	"keywords": [
+		"annotations",
+		"highlights",
+		"web-extension",
+		"webext",
+		"chrome-extension",
+		"browser-extension",
+		"addon"
+	],
 	"type": "module",
 	"scripts": {
 		"build": "vite build",
@@ -27,7 +37,7 @@
 	"exports": {
 		".": {
 			"types": "./dist/index.d.ts",
-			"import": "./dist/annot.js"
+			"import": "./dist/anno-webext.js"
 		}
 	},
 	"engines": {

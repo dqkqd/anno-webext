@@ -1,12 +1,12 @@
-import { Annotations } from 'annot';
+import { Annotations } from 'anno-webext';
 import { useEffect, useState } from 'react';
 import { createRoot } from 'react-dom/client';
-import { annot } from './utils';
+import { anno } from './utils';
 
 function Popup() {
 	const [annotations, setAnnotations] = useState<Annotations<number>>({});
 	useEffect(() => {
-		annot.readAll().then(setAnnotations);
+		anno.readAll().then(setAnnotations);
 	}, []);
 
 	const entries = Object.entries(annotations);
@@ -15,11 +15,11 @@ function Popup() {
 		<>
 			{entries.length === 0
 				? 'No annotations saved yet.'
-				: entries.map(([url, annots]) => (
+				: entries.map(([url, annos]) => (
 						<div key={url}>
 							<h3>{url}</h3>
 							<ul>
-								{annots.map((a) => (
+								{annos.map((a) => (
 									<li key={a.id}>
 										{a.text}
 										<br />
@@ -33,4 +33,4 @@ function Popup() {
 	);
 }
 
-createRoot(document.getElementById('annot-popup')!).render(<Popup />);
+createRoot(document.getElementById('anno-popup')!).render(<Popup />);
