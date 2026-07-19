@@ -1,9 +1,10 @@
 {
 	"private": true,
-	"name": "annot",
+	"name": "anno-webext",
 	"version": "0.0.1",
 	"description": "Annotation library for web extension",
-	"repository": "github:dqkqd/annot",
+	"repository": "github:dqkqd/anno-webext",
+	"author": "Khanh Duong",
 	"license": "MIT",
 	"type": "module",
 	"scripts": {
