@@ -16,6 +16,7 @@ export default defineConfig({
     dts({
       entryRoot: resolve(import.meta.dirname, 'src'),
       include: ['src/**/*.ts'],
+      bundleTypes: true,
     }),
   ],
 });

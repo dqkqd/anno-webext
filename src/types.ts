@@ -1,9 +1,5 @@
 export type UUID = `${string}-${string}-${string}-${string}-${string}`;
 
-export type StoredAnnotations<Meta> = {
-  [normalizedUrl: string]: StoredAnnotation<Meta>[];
-};
-
 export type Annotations<Meta> = {
   [normalizedUrl: string]: Annotation<Meta>[];
 };
@@ -90,9 +86,11 @@ export interface StoredAnnotation<S> extends IAnnotation<S> {
 }
 
 export type AnnoOptions<Memory, Storable> = {
-  encodeMetadata: (m: Memory) => Storable;
-  decodeMetadata: (s: Storable) => Memory;
-  createMetadata: () => Memory;
+  metadata: {
+    init: () => Memory;
+    encode: (m: Memory) => Storable;
+    decode: (s: Storable) => Memory;
+  };
 };
 
 export type DomAnnotationQueryOptions = {
@@ -107,7 +105,7 @@ export type AnnoContent<M> = {
 };
 
 export type AnnoPopup<M> = {
-  readAll: () => Promise<Annotations<M>>;
+  get: () => Promise<Annotations<M>>;
   updateMetadata: (
     annotationId: UUID,
     updateFn: (m: M) => M,
@@ -117,4 +115,40 @@ export type AnnoPopup<M> = {
 export type Anno<M> = {
   content: AnnoContent<M>;
   popup: AnnoPopup<M>;
+};
+
+export type AnnoStore<M> = {
+  content: {
+    get: () => Promise<DomAnnotation<M>[]>;
+    set: (annotation: DomAnnotation<M>) => Promise<void>;
+  };
+  popup: {
+    get: () => Promise<Annotations<M>>;
+    updateMetadata: (
+      annotationId: UUID,
+      updateFn: (m: M) => M,
+    ) => Promise<Annotation<M>>;
+  };
+};
+
+export type AnnoCodec<M, S> = {
+  /**
+   * encode the `DomAnnotation` to `StoredAnnotation`
+   */
+  encode: (annotation: DomAnnotation<M>) => StoredAnnotation<S>;
+
+  /**
+   * decode the `StoredAnnotation` to `Annotation`
+   */
+  decode: (stored: StoredAnnotation<S>) => Annotation<M>;
+
+  /**
+   * decode the `StoredAnnotation` to `DomAnnotation`
+   */
+  decodeDom: (stored: StoredAnnotation<S>) => DomAnnotation<M> | undefined;
+
+  metadata: {
+    encode: (m: M) => S;
+    decode: (s: S) => M;
+  };
 };

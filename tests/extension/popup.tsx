@@ -1,4 +1,4 @@
-import type { Annotations } from 'anno-webext/types';
+import type { Annotations } from 'anno-webext';
 import { produce } from 'immer';
 import { useEffect, useState } from 'react';
 import { createRoot } from 'react-dom/client';
@@ -7,7 +7,7 @@ import { anno } from './utils';
 function Popup() {
   const [annotations, setAnnotations] = useState<Annotations<number>>({});
   useEffect(() => {
-    anno.popup.readAll().then(setAnnotations);
+    anno.popup.get().then(setAnnotations);
   }, []);
 
   const entries = Object.entries(annotations);
