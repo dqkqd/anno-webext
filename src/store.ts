@@ -32,21 +32,6 @@ export async function getCurrentDomAnnotations<M, S>(
   return validAnnotations;
 }
 
-// TODO: check if needed
-export async function read<M, S>(
-  annotationId: UUID,
-  decodeMetadata: (s: S) => M,
-): Promise<Annotation<M> | undefined> {
-  // TODO: this function should accept url!
-  const storedAnnotations = await getStoredAnnotations<S>();
-  for (const annotationsInUrl of Object.values(storedAnnotations)) {
-    const annotation = annotationsInUrl.find((a) => a.id === annotationId);
-    if (annotation) {
-      return decode(annotation, decodeMetadata);
-    }
-  }
-}
-
 export async function readAll<M, S>(
   decodeMetadata: (s: S) => M,
 ): Promise<Annotations<M>> {
