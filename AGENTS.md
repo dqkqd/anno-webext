@@ -16,7 +16,7 @@ src/                    # library source, built to dist/
   store.ts              # chrome.storage.local persistence
   types.ts, global.d.ts # shared types
 
-tests/                  # Playwright end-to-end specs (no unit tests)
+tests/                  # Playwright end-to-end specs
   fixtures.ts           # browser/extension launch fixtures
   utils.ts              # shared test helpers (select text, assert highlights)
   *.spec.ts             # specs, one file per feature area
@@ -25,6 +25,7 @@ tests/                  # Playwright end-to-end specs (no unit tests)
 
 dist/, tests/dist/      # build output — generated, don't edit
 
+vitest.config.ts        # vitest unit test configuration
 flake.nix, .envrc       # Nix devShell (node, browsers, playwright deps)
 .github/workflows/      # CI: test matrix, format check, lint, typo check
 ```
@@ -45,18 +46,23 @@ npx playwright install --with-deps chromium firefox
 
 ```bash
 npm run build                       # build the library to dist/
-npm run build:test                  # build + bundle tests/extension into tests/dist/
+npm run build:e2e                   # build library + bundle tests/extension into tests/dist/
 npm run lint                        # build + eslint
 npm run lint:fix                    # eslint --fix
 npm run format                      # dprint, writes formatting fixes
 npm run format:check                # dprint, check only
-npm run test                        # build:test + playwright test (chromium + firefox)
-npm run test -- --project=chromium
-npm run test -- --project=firefox
-npm run test:debug                  # debug build + playwright --ui --headed
+npm run test                        # test:unit + test:e2e (unit runs first, e2e skipped if unit fails)
+npm run test:unit                   # vitest unit tests (src/**/*.test.ts)
+npm run test:e2e                    # build:e2e + playwright test (chromium + firefox)
+npm run test:e2e -- --project=chromium
+npm run test:e2e -- --project=firefox
+npm run test:e2e:debug              # debug build + playwright --ui --headed
 ```
 
 ## Testing notes
+
+Unit tests (`npm run test:unit`) use vitest with jsdom and cover functional
+modules in `src/`. E2E tests (`npm run test:e2e`) use Playwright.
 
 Playwright runs two projects, `chromium` and `firefox`, launched differently
 (`tests/fixtures.ts`):
