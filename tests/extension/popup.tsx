@@ -1,4 +1,4 @@
-import type { Annotations } from 'anno-webext/types';
+import type { Annotations } from 'anno-webext';
 import { produce } from 'immer';
 import { useEffect, useState } from 'react';
 import { createRoot } from 'react-dom/client';
