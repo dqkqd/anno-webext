@@ -147,7 +147,7 @@ function createAnnotationFromSelection<M>(
   return {
     id,
     version: STORE_FORMAT_VERSION,
-    text: selection.toString(),
+    text: range.toString(),
     originalUrl,
     normalizedUrl,
     annotationUrl,
