@@ -1,4 +1,4 @@
-import { decode, encode } from './codec';
+import { decode, decodeDom, encode } from './codec';
 import type {
   Annotation,
   Annotations,
@@ -13,6 +13,23 @@ async function getStoredAnnotations<Meta>(): Promise<
 > {
   const result = await chrome.storage.local.get({ highlights: {} });
   return result.highlights as StoredAnnotations<Meta>;
+}
+
+export async function getCurrentDomAnnotations<M, S>(
+  url: string,
+  decodeMetadata: (s: S) => M,
+): Promise<DomAnnotation<M>[]> {
+  const allStoredAnnotations = await getStoredAnnotations<S>();
+  const storedAnnotations = allStoredAnnotations[url] ?? [];
+  const annotations = storedAnnotations.map((s) =>
+    decodeDom(s, decodeMetadata)
+  );
+  // TODO: handle missing annotation (This is because range is missing)
+  // TODO: handle deleted / invalid annotation!
+  const validAnnotations = annotations.filter((a) => a !== undefined).filter((
+    a,
+  ) => normalizeText(a.range.toString()) === normalizeText(a.text));
+  return validAnnotations;
 }
 
 // TODO: check if needed
@@ -104,4 +121,8 @@ export async function getStoredAnnotation<Meta>(
       return annotation;
     }
   }
+}
+
+function normalizeText(text: string): string {
+  return text.replace(/\s+/g, ' ').trim();
 }

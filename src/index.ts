@@ -1,11 +1,10 @@
-import { decodeDom } from './codec';
 import { getNodeByXPath } from './location';
 import { normalizeUrl } from './normalize-url';
 import { queryDomAnnotations, recordDomAnnotation } from './registry';
 import {
   create,
+  getCurrentDomAnnotations,
   getStoredAnnotation,
-  getStoredAnnotations,
   readAll,
   updateMetadata,
 } from './store';
@@ -70,28 +69,15 @@ async function restoreAnnotations<M, S>(
   decodeMetadata: (s: S) => M,
 ): Promise<DomAnnotation<M>[]> {
   const normalizedUrl = normalizeUrl(location.href);
-  const allContexts = await getStoredAnnotations<S>();
-  const contextsInUrl = allContexts[normalizedUrl];
-  if (!contextsInUrl) {
-    return [];
-  }
+  const annotations = await getCurrentDomAnnotations(
+    normalizedUrl,
+    decodeMetadata,
+  );
 
-  const annotations: DomAnnotation<M>[] = [];
   const highlights = highlightRegistry.get(ANNOTATION_CLASS) ?? new Highlight();
-  for (const c of contextsInUrl) {
-    const annotation = decodeDom(c, decodeMetadata);
-    if (!annotation) {
-      // TODO: handle missing annotation (This is because range is missing)
-      continue;
-    }
-    const validRange =
-      normalizeText(annotation.range.toString()) === normalizeText(c.text);
-    if (validRange) {
-      highlights.add(annotation.range);
-      annotations.push(annotation);
-      recordDomAnnotation(annotation);
-    }
-    // TODO: handle deleted / invalid annotation!
+  for (const annotation of annotations) {
+    highlights.add(annotation.range);
+    recordDomAnnotation(annotation);
   }
   highlightRegistry.set(ANNOTATION_CLASS, highlights);
 
@@ -135,10 +121,6 @@ function scrollToElement(element: Element): void {
     inline: 'start',
     behavior: 'smooth',
   });
-}
-
-function normalizeText(text: string): string {
-  return text.replace(/\s+/g, ' ').trim();
 }
 
 function createAnnotationFromSelection<M>(
