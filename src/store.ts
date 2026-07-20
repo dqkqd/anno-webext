@@ -35,8 +35,7 @@ export async function getCurrentDomAnnotations<M, S>(
 export async function readAll<M, S>(
   decodeMetadata: (s: S) => M,
 ): Promise<Annotations<M>> {
-  const result = await chrome.storage.local.get({ highlights: {} });
-  const stored = result.highlights as StoredAnnotations<S>;
+  const stored = await getStoredAnnotations<S>();
   const annotations = Object.fromEntries(
     Object.entries(stored).map(([url, storedAnnotations]) => [
       url,
