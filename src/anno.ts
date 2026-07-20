@@ -123,7 +123,7 @@ function scrollToElement(element: Element): void {
   });
 }
 
-function createAnnotationFromSelection<M>(
+export function createAnnotationFromSelection<M>(
   selection: Selection,
   createMetadata: () => M,
 ): DomAnnotation<M> | undefined {
