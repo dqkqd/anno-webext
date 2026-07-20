@@ -21,15 +21,17 @@
   "scripts": {
     "build": "vite build",
     "build:debug": "vite build --minify=false --sourcemap=inline",
-    "build:test": "npm run build && vite build -c vite.config.test.ts",
-    "build:test:debug": "npm run build:debug && vite build -c vite.config.test.ts --minify=false --sourcemap=inline",
+    "build:e2e": "npm run build && vite build -c vite.config.e2e.ts",
+    "build:e2e:debug": "npm run build:debug && vite build -c vite.config.e2e.ts --minify=false --sourcemap=inline",
     "lint": "npm run build && eslint .",
     "lint:fix": "eslint --fix .",
+    "test:unit": "vitest run",
+    "test": "npm run test:unit && npm run test:e2e",
     "format": "dprint fmt",
     "format:check": "dprint check",
-    "test": "npm run build:test && playwright test",
-    "test:debug": "npm run build:test:debug && playwright test --ui --headed",
-    "web-ext:firefox": "npm run build:test:debug && web-ext run --source-dir ./tests/dist --start-url https://en.wikipedia.org/wiki/Alan_Turing",
+    "test:e2e": "npm run build:e2e && playwright test",
+    "test:e2e:debug": "npm run build:e2e:debug && playwright test --ui --headed",
+    "web-ext:firefox": "npm run build:e2e:debug && web-ext run --source-dir ./tests/dist --start-url https://en.wikipedia.org/wiki/Alan_Turing",
     "web-ext:chrome": "npm run web-ext:firefox -- --target chromium"
   },
   "exports": {
@@ -65,6 +67,7 @@
     "globals": "^17.7.0",
     "immer": "^11.1.15",
     "jiti": "^2.7.0",
+    "jsdom": "^29.1.1",
     "playwright-webextext": "^0.0.5",
     "react": "^19.2.7",
     "react-dom": "^19.2.7",
@@ -73,6 +76,7 @@
     "typescript-eslint": "^8.62.0",
     "unplugin-dts": "^1.0.3",
     "vite": "^8.0.12",
+    "vitest": "^4.1.10",
     "web-ext": "^10.5.0"
   },
   "dependencies": {

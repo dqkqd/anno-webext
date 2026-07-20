@@ -16,7 +16,8 @@
     "src",
     "tests",
     "vite.config.ts",
-    "vite.config.test.ts",
+    "vite.config.e2e.ts",
+    "vitest.config.ts",
     "eslint.config.ts",
     "playwright.config.ts"
   ],
