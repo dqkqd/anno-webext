@@ -67,7 +67,6 @@ test('update metadata', async ({ annotatedUrls, context, popupUrl }) => {
   await annotateText(page, 'one');
 
   await page.goto(popupUrl);
-  // await page.pause();
   const metadata = await page.locator('li > span:nth-child(2)').textContent();
   const metadataNumber = Number(metadata);
   expect(metadataNumber).not.toBeNaN();

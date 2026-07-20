@@ -1,11 +1,8 @@
-import { decodeDom } from './codec';
-import { getNodeByXPath } from './location';
 import { normalizeUrl } from './normalize-url';
 import { queryDomAnnotations, recordDomAnnotation } from './registry';
 import {
   create,
-  getStoredAnnotation,
-  getStoredAnnotations,
+  getCurrentDomAnnotations,
   readAll,
   updateMetadata,
 } from './store';
@@ -57,32 +54,11 @@ export function annotate<M>(
   return annotation;
 }
 
-export function getAnnotationRangeAtPoint(
-  x: number,
-  y: number,
-): Range | undefined {
-  const highlights = highlightRegistry.get(ANNOTATION_CLASS);
-  if (!highlights) {
-    return;
-  }
-
-  for (const range of highlights.values()) {
-    const r = range as Range;
-    for (const rect of r.getClientRects()) {
-      if (
-        x >= rect.left && x <= rect.right && y >= rect.top && y <= rect.bottom
-      ) {
-        return r;
-      }
-    }
-  }
-}
-
 export async function initAnnotations<M, S>(
   decodeMetadata: (s: S) => M,
 ): Promise<DomAnnotation<M>[]> {
   const annotations = await restoreAnnotations(decodeMetadata);
-  await scrollToAnnotation();
+  scrollToAnnotation(annotations);
   return annotations;
 }
 
@@ -91,50 +67,33 @@ async function restoreAnnotations<M, S>(
   decodeMetadata: (s: S) => M,
 ): Promise<DomAnnotation<M>[]> {
   const normalizedUrl = normalizeUrl(location.href);
-  const allContexts = await getStoredAnnotations<S>();
-  const contextsInUrl = allContexts[normalizedUrl];
-  if (!contextsInUrl) {
-    return [];
-  }
+  const annotations = await getCurrentDomAnnotations(
+    normalizedUrl,
+    decodeMetadata,
+  );
 
-  const annotations: DomAnnotation<M>[] = [];
   const highlights = highlightRegistry.get(ANNOTATION_CLASS) ?? new Highlight();
-  for (const c of contextsInUrl) {
-    const annotation = decodeDom(c, decodeMetadata);
-    if (!annotation) {
-      // TODO: handle missing annotation (This is because range is missing)
-      continue;
-    }
-    const validRange =
-      normalizeText(annotation.range.toString()) === normalizeText(c.text);
-    if (validRange) {
-      highlights.add(annotation.range);
-      annotations.push(annotation);
-      recordDomAnnotation(annotation);
-    }
-    // TODO: handle deleted / invalid annotation!
+  for (const annotation of annotations) {
+    highlights.add(annotation.range);
+    recordDomAnnotation(annotation);
   }
   highlightRegistry.set(ANNOTATION_CLASS, highlights);
 
   return annotations;
 }
 
-async function scrollToAnnotation(): Promise<void> {
+function scrollToAnnotation<M>(
+  annotations: DomAnnotation<M>[],
+) {
   const annotationId = getAnnotationIdFromHash(location.hash);
   if (!annotationId) {
     return;
   }
 
-  const context = await getStoredAnnotation(annotationId);
-  if (!context?.scrollElement) {
-    return;
+  const annotation = annotations.find((a) => a.id === annotationId);
+  if (annotation) {
+    scrollToElement(annotation.scrollElement);
   }
-
-  const element = getNodeByXPath(context.scrollElement);
-  if (!element) {
-    return;
-  }
-  scrollToElement(element as Element);
 }
 
 export function createAnnotationUrl(normalizedUrl: string, id: UUID): string {
@@ -158,10 +117,6 @@ function scrollToElement(element: Element): void {
   });
 }
 
-function normalizeText(text: string): string {
-  return text.replace(/\s+/g, ' ').trim();
-}
-
 function createAnnotationFromSelection<M>(
   selection: Selection,
   createMetadata: () => M,
@@ -176,16 +131,24 @@ function createAnnotationFromSelection<M>(
   const normalizedUrl = normalizeUrl(originalUrl);
   const annotationUrl = createAnnotationUrl(normalizedUrl, id);
 
+  // Add scroll element to the annotation.
+  // This must be an `Element`, which means if we are selecting a text node,
+  // then this should be its parent.
+  const scrollElement = range.startContainer.nodeType === Node.ELEMENT_NODE
+    ? (range.startContainer as Element)
+    : range.startContainer.parentElement!;
+
   return {
     id,
     version: STORE_FORMAT_VERSION,
-    text: selection.toString(),
+    text: range.toString(),
     originalUrl,
     normalizedUrl,
     annotationUrl,
     createdAt: new Date(),
-    metadata: createMetadata(),
     range,
+    scrollElement,
+    metadata: createMetadata(),
   };
 }
 

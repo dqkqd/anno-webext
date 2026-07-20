@@ -1,4 +1,4 @@
-import { decode, encode } from './codec';
+import { decode, decodeDom, encode } from './codec';
 import type {
   Annotation,
   Annotations,
@@ -8,33 +8,34 @@ import type {
   UUID,
 } from './types';
 
-export async function getStoredAnnotations<Meta>(): Promise<
+async function getStoredAnnotations<Meta>(): Promise<
   StoredAnnotations<Meta>
 > {
   const result = await chrome.storage.local.get({ highlights: {} });
   return result.highlights as StoredAnnotations<Meta>;
 }
 
-// TODO: check if needed
-export async function read<M, S>(
-  annotationId: UUID,
+export async function getCurrentDomAnnotations<M, S>(
+  url: string,
   decodeMetadata: (s: S) => M,
-): Promise<Annotation<M> | undefined> {
-  // TODO: this function should accept url!
-  const storedAnnotations = await getStoredAnnotations<S>();
-  for (const annotationsInUrl of Object.values(storedAnnotations)) {
-    const annotation = annotationsInUrl.find((a) => a.id === annotationId);
-    if (annotation) {
-      return decode(annotation, decodeMetadata);
-    }
-  }
+): Promise<DomAnnotation<M>[]> {
+  const allStoredAnnotations = await getStoredAnnotations<S>();
+  const storedAnnotations = allStoredAnnotations[url] ?? [];
+  const annotations = storedAnnotations.map((s) =>
+    decodeDom(s, decodeMetadata)
+  );
+  // TODO: handle missing annotation (This is because range is missing)
+  // TODO: handle deleted / invalid annotation!
+  const validAnnotations = annotations.filter((a) => a !== undefined).filter((
+    a,
+  ) => normalizeText(a.range.toString()) === normalizeText(a.text));
+  return validAnnotations;
 }
 
 export async function readAll<M, S>(
   decodeMetadata: (s: S) => M,
 ): Promise<Annotations<M>> {
-  const result = await chrome.storage.local.get({ highlights: {} });
-  const stored = result.highlights as StoredAnnotations<S>;
+  const stored = await getStoredAnnotations<S>();
   const annotations = Object.fromEntries(
     Object.entries(stored).map(([url, storedAnnotations]) => [
       url,
@@ -93,15 +94,6 @@ export async function updateMetadata<M, S>(
   return decode(stored, decodeMetadata);
 }
 
-export async function getStoredAnnotation<Meta>(
-  annotationId: UUID,
-): Promise<StoredAnnotation<Meta> | undefined> {
-  // TODO: this function should accept url!
-  const storedAnnotations = await getStoredAnnotations<Meta>();
-  for (const annotationsInUrl of Object.values(storedAnnotations)) {
-    const annotation = annotationsInUrl.find((a) => a.id === annotationId);
-    if (annotation) {
-      return annotation;
-    }
-  }
+function normalizeText(text: string): string {
+  return text.replace(/\s+/g, ' ').trim();
 }
