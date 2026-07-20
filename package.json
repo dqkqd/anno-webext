@@ -25,6 +25,7 @@
     "build:test:debug": "npm run build:debug && vite build -c vite.config.test.ts --minify=false --sourcemap=inline",
     "lint": "npm run build && eslint .",
     "lint:fix": "eslint --fix .",
+    "test:unit": "vitest run",
     "format": "dprint fmt",
     "format:check": "dprint check",
     "test": "npm run build:test && playwright test",
@@ -65,6 +66,7 @@
     "globals": "^17.7.0",
     "immer": "^11.1.15",
     "jiti": "^2.7.0",
+    "jsdom": "^29.1.1",
     "playwright-webextext": "^0.0.5",
     "react": "^19.2.7",
     "react-dom": "^19.2.7",
@@ -73,6 +75,7 @@
     "typescript-eslint": "^8.62.0",
     "unplugin-dts": "^1.0.3",
     "vite": "^8.0.12",
+    "vitest": "^4.1.10",
     "web-ext": "^10.5.0"
   },
   "dependencies": {
