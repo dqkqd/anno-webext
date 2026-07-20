@@ -1,10 +1,8 @@
-import { getNodeByXPath } from './location';
 import { normalizeUrl } from './normalize-url';
 import { queryDomAnnotations, recordDomAnnotation } from './registry';
 import {
   create,
   getCurrentDomAnnotations,
-  getStoredAnnotation,
   readAll,
   updateMetadata,
 } from './store';
@@ -60,7 +58,7 @@ export async function initAnnotations<M, S>(
   decodeMetadata: (s: S) => M,
 ): Promise<DomAnnotation<M>[]> {
   const annotations = await restoreAnnotations(decodeMetadata);
-  await scrollToAnnotation();
+  scrollToAnnotation(annotations);
   return annotations;
 }
 
@@ -84,22 +82,18 @@ async function restoreAnnotations<M, S>(
   return annotations;
 }
 
-async function scrollToAnnotation(): Promise<void> {
+function scrollToAnnotation<M>(
+  annotations: DomAnnotation<M>[],
+) {
   const annotationId = getAnnotationIdFromHash(location.hash);
   if (!annotationId) {
     return;
   }
 
-  const context = await getStoredAnnotation(annotationId);
-  if (!context?.scrollElement) {
-    return;
+  const annotation = annotations.find((a) => a.id === annotationId);
+  if (annotation) {
+    scrollToElement(annotation.scrollElement);
   }
-
-  const element = getNodeByXPath(context.scrollElement);
-  if (!element) {
-    return;
-  }
-  scrollToElement(element as Element);
 }
 
 export function createAnnotationUrl(normalizedUrl: string, id: UUID): string {

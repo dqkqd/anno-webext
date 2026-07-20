@@ -94,19 +94,6 @@ export async function updateMetadata<M, S>(
   return decode(stored, decodeMetadata);
 }
 
-export async function getStoredAnnotation<Meta>(
-  annotationId: UUID,
-): Promise<StoredAnnotation<Meta> | undefined> {
-  // TODO: this function should accept url!
-  const storedAnnotations = await getStoredAnnotations<Meta>();
-  for (const annotationsInUrl of Object.values(storedAnnotations)) {
-    const annotation = annotationsInUrl.find((a) => a.id === annotationId);
-    if (annotation) {
-      return annotation;
-    }
-  }
-}
-
 function normalizeText(text: string): string {
   return text.replace(/\s+/g, ' ').trim();
 }
