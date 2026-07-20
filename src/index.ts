@@ -57,27 +57,6 @@ export function annotate<M>(
   return annotation;
 }
 
-export function getAnnotationRangeAtPoint(
-  x: number,
-  y: number,
-): Range | undefined {
-  const highlights = highlightRegistry.get(ANNOTATION_CLASS);
-  if (!highlights) {
-    return;
-  }
-
-  for (const range of highlights.values()) {
-    const r = range as Range;
-    for (const rect of r.getClientRects()) {
-      if (
-        x >= rect.left && x <= rect.right && y >= rect.top && y <= rect.bottom
-      ) {
-        return r;
-      }
-    }
-  }
-}
-
 export async function initAnnotations<M, S>(
   decodeMetadata: (s: S) => M,
 ): Promise<DomAnnotation<M>[]> {
