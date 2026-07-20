@@ -6,6 +6,9 @@ import type {
   StoredRange,
 } from './types';
 
+/**
+ * encode the `DomAnnotation` to `StoredAnnotation`
+ */
 export function encode<M, S>(
   annotation: DomAnnotation<M>,
   metadataEncode: (m: M) => S,
@@ -30,6 +33,9 @@ export function encode<M, S>(
   };
 }
 
+/**
+ * decode the `StoredAnnotation` to `Annotation`
+ */
 export function decode<M, S>(
   stored: StoredAnnotation<S>,
   decodeMetadata: (s: S) => M,
@@ -41,6 +47,9 @@ export function decode<M, S>(
   };
 }
 
+/**
+ * decode the `StoredAnnotation` to `DomAnnotation`
+ */
 export function decodeDom<M, S>(
   stored: StoredAnnotation<S>,
   decodeMetadata: (s: S) => M,
