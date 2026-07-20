@@ -1,11 +1,6 @@
 import { normalizeUrl } from './normalize-url';
 import { queryDomAnnotations, recordDomAnnotation } from './registry';
-import {
-  create,
-  getCurrentDomAnnotations,
-  readAll,
-  updateMetadata,
-} from './store';
+import { createStore } from './store';
 import type {
   Anno,
   AnnoContent,
@@ -13,6 +8,7 @@ import type {
   AnnoPopup,
   Annotations,
   DomAnnotation,
+  Store,
   UUID,
 } from './types';
 
@@ -54,24 +50,19 @@ export function annotate<M>(
   return annotation;
 }
 
-export async function initAnnotations<M, S>(
-  decodeMetadata: (s: S) => M,
+export async function initAnnotations<M>(
+  store: Store<M>,
 ): Promise<DomAnnotation<M>[]> {
-  const annotations = await restoreAnnotations(decodeMetadata);
+  const annotations = await restoreAnnotations(store);
   scrollToAnnotation(annotations);
   return annotations;
 }
 
 // TODO: this function only run in the content script!
-async function restoreAnnotations<M, S>(
-  decodeMetadata: (s: S) => M,
+async function restoreAnnotations<M>(
+  store: Store<M>,
 ): Promise<DomAnnotation<M>[]> {
-  const normalizedUrl = normalizeUrl(location.href);
-  const annotations = await getCurrentDomAnnotations(
-    normalizedUrl,
-    decodeMetadata,
-  );
-
+  const annotations = await store.content.get();
   const highlights = highlightRegistry.get(ANNOTATION_CLASS) ?? new Highlight();
   for (const annotation of annotations) {
     highlights.add(annotation.range);
@@ -153,17 +144,18 @@ function createAnnotationFromSelection<M>(
 }
 
 export function createAnno<M, S>(options: AnnoOptions<M, S>): Anno<M> {
+  const store = createStore(options);
   const content: AnnoContent<M> = {
     annotate: async (): Promise<DomAnnotation<M> | undefined> => {
       const annotation = annotate(options.createMetadata);
       if (!annotation) {
         return;
       }
-      await create(annotation, options.encodeMetadata);
+      await store.content.set(annotation);
       return annotation;
     },
     restore: async (): Promise<DomAnnotation<M>[]> => {
-      return await initAnnotations(options.decodeMetadata);
+      return await initAnnotations(store);
     },
     query: (queryOption) => {
       return queryDomAnnotations(queryOption);
@@ -171,14 +163,12 @@ export function createAnno<M, S>(options: AnnoOptions<M, S>): Anno<M> {
   };
 
   const popup: AnnoPopup<M> = {
-    readAll: async (): Promise<Annotations<M>> => {
-      return await readAll(options.decodeMetadata);
+    get: async (): Promise<Annotations<M>> => {
+      return await store.popup.get();
     },
     updateMetadata: async (annotationId: UUID, updateFn: (m: M) => M) => {
-      return await updateMetadata(
+      return await store.popup.updateMetadata(
         annotationId,
-        options.encodeMetadata,
-        options.decodeMetadata,
         updateFn,
       );
     },

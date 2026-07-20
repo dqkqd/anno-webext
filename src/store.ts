@@ -1,41 +1,103 @@
 import { decode, decodeDom, encode } from './codec';
+import { normalizeUrl } from './normalize-url';
 import type {
+  AnnoOptions,
   Annotation,
   Annotations,
   DomAnnotation,
+  Store,
   StoredAnnotation,
-  StoredAnnotations,
   UUID,
 } from './types';
 
-async function getStoredAnnotations<Meta>(): Promise<
-  StoredAnnotations<Meta>
-> {
-  const result = await chrome.storage.local.get({ highlights: {} });
-  return result.highlights as StoredAnnotations<Meta>;
+export function createStore<M, S>(options: AnnoOptions<M, S>): Store<M> {
+  return {
+    content: {
+      get: async () => {
+        return await contentGet(options.decodeMetadata);
+      },
+      set: async (annotation) => {
+        return await contentSet(annotation, options.encodeMetadata);
+      },
+    },
+    popup: {
+      get: async () => {
+        return popupGet(options.decodeMetadata);
+      },
+      updateMetadata: async (annotationId, updateFn) => {
+        return await popupUpdateMetadata(
+          annotationId,
+          options.encodeMetadata,
+          options.decodeMetadata,
+          updateFn,
+        );
+      },
+    },
+  };
 }
 
-export async function getCurrentDomAnnotations<M, S>(
-  url: string,
+type StoredAnnotations<Meta> = {
+  [normalizedUrl: string]: StoredAnnotation<Meta>[];
+};
+
+// browser extension storage
+const browserStorage = {
+  get: async <S>(): Promise<StoredAnnotations<S>> => {
+    const result = await chrome.storage.local.get({ annotations: {} });
+    return result.annotations as StoredAnnotations<S>;
+  },
+  set: async <S>(
+    storedAnnotations: StoredAnnotations<S>,
+  ): Promise<void> => {
+    await chrome.storage.local.set({ annotations: storedAnnotations });
+  },
+  getByUrl: async <S>(url: string): Promise<StoredAnnotation<S>[]> => {
+    const result = await browserStorage.get<S>();
+    return result[url] ?? [];
+  },
+};
+
+function normalizeText(text: string): string {
+  return text.replace(/\s+/g, ' ').trim();
+}
+
+async function contentGet<M, S>(
   decodeMetadata: (s: S) => M,
 ): Promise<DomAnnotation<M>[]> {
-  const allStoredAnnotations = await getStoredAnnotations<S>();
-  const storedAnnotations = allStoredAnnotations[url] ?? [];
+  const url = normalizeUrl(location.href);
+  const storedAnnotations = await browserStorage.getByUrl<S>(url);
   const annotations = storedAnnotations.map((s) =>
     decodeDom(s, decodeMetadata)
   );
   // TODO: handle missing annotation (This is because range is missing)
   // TODO: handle deleted / invalid annotation!
-  const validAnnotations = annotations.filter((a) => a !== undefined).filter((
-    a,
-  ) => normalizeText(a.range.toString()) === normalizeText(a.text));
+  const validAnnotations = annotations.filter((a) => a !== undefined)
+    .filter((
+      a,
+    ) => normalizeText(a.range.toString()) === normalizeText(a.text));
   return validAnnotations;
 }
 
-export async function readAll<M, S>(
+async function contentSet<M, S>(
+  annotation: DomAnnotation<M>,
+  encodeMetadata: (m: M) => S,
+): Promise<void> {
+  const storedAnnotations = await browserStorage.get<S>();
+  const annotationsInUrl = storedAnnotations[annotation.normalizedUrl] ?? [];
+  if (annotationsInUrl.find((s) => s.id == annotation.id)) {
+    throw Error(`An annotation with id ${annotation.id} already exists`);
+  }
+  const stored = encode(annotation, encodeMetadata);
+  annotationsInUrl.push(stored);
+
+  storedAnnotations[annotation.normalizedUrl] = annotationsInUrl;
+  await browserStorage.set(storedAnnotations);
+}
+
+async function popupGet<M, S>(
   decodeMetadata: (s: S) => M,
 ): Promise<Annotations<M>> {
-  const stored = await getStoredAnnotations<S>();
+  const stored = await browserStorage.get<S>();
   const annotations = Object.fromEntries(
     Object.entries(stored).map(([url, storedAnnotations]) => [
       url,
@@ -45,30 +107,13 @@ export async function readAll<M, S>(
   return annotations;
 }
 
-// TODO: remove the export
-export async function create<M, S>(
-  annotation: DomAnnotation<M>,
-  encodeMetadata: (m: M) => S,
-): Promise<void> {
-  const storedAnnotations = await getStoredAnnotations<S>();
-  const annotationsInUrl = storedAnnotations[annotation.normalizedUrl] ?? [];
-  if (annotationsInUrl.find((s) => s.id == annotation.id)) {
-    throw Error(`An annotation with id ${annotation.id} already exists`);
-  }
-  const stored = encode(annotation, encodeMetadata);
-  annotationsInUrl.push(stored);
-
-  storedAnnotations[annotation.normalizedUrl] = annotationsInUrl;
-  await chrome.storage.local.set({ highlights: storedAnnotations });
-}
-
-export async function updateMetadata<M, S>(
+async function popupUpdateMetadata<M, S>(
   annotationId: UUID,
   encodeMetadata: (m: M) => S,
   decodeMetadata: (s: S) => M,
   updateFn: (m: M) => M,
 ): Promise<Annotation<M>> {
-  const storedAnnotations = await getStoredAnnotations<S>();
+  const storedAnnotations = await browserStorage.get<S>();
   let stored: StoredAnnotation<S> | undefined = undefined;
   let storedIndex: number | undefined = undefined;
   for (const annotationsInUrl of Object.values(storedAnnotations)) {
@@ -89,11 +134,7 @@ export async function updateMetadata<M, S>(
   stored.metadata = encodeMetadata(updated);
 
   storedAnnotations[stored.normalizedUrl][storedIndex] = stored;
-  await chrome.storage.local.set({ highlights: storedAnnotations });
+  await browserStorage.set(storedAnnotations);
 
   return decode(stored, decodeMetadata);
-}
-
-function normalizeText(text: string): string {
-  return text.replace(/\s+/g, ' ').trim();
 }

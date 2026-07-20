@@ -1,9 +1,5 @@
 export type UUID = `${string}-${string}-${string}-${string}-${string}`;
 
-export type StoredAnnotations<Meta> = {
-  [normalizedUrl: string]: StoredAnnotation<Meta>[];
-};
-
 export type Annotations<Meta> = {
   [normalizedUrl: string]: Annotation<Meta>[];
 };
@@ -107,7 +103,7 @@ export type AnnoContent<M> = {
 };
 
 export type AnnoPopup<M> = {
-  readAll: () => Promise<Annotations<M>>;
+  get: () => Promise<Annotations<M>>;
   updateMetadata: (
     annotationId: UUID,
     updateFn: (m: M) => M,
@@ -117,4 +113,18 @@ export type AnnoPopup<M> = {
 export type Anno<M> = {
   content: AnnoContent<M>;
   popup: AnnoPopup<M>;
+};
+
+export type Store<M> = {
+  content: {
+    get: () => Promise<DomAnnotation<M>[]>;
+    set: (annotation: DomAnnotation<M>) => Promise<void>;
+  };
+  popup: {
+    get: () => Promise<Annotations<M>>;
+    updateMetadata: (
+      annotationId: UUID,
+      updateFn: (m: M) => M,
+    ) => Promise<Annotation<M>>;
+  };
 };
