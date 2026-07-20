@@ -6,16 +6,13 @@ import type {
   StoredRange,
 } from './types';
 
+/**
+ * encode the `DomAnnotation` to `StoredAnnotation`
+ */
 export function encode<M, S>(
   annotation: DomAnnotation<M>,
   metadataEncode: (m: M) => S,
 ): StoredAnnotation<S> {
-  // scroll element to annotation to.
-  // This must be `Element` so we take the parent if the current node is a text node.
-  const scrollElement =
-    annotation.range.startContainer.nodeType === Node.ELEMENT_NODE
-      ? (annotation.range.startContainer as Element)
-      : annotation.range.startContainer.parentElement!;
   return {
     ...annotation,
     createdAt: annotation.createdAt.toISOString(),
@@ -25,11 +22,14 @@ export function encode<M, S>(
       endContainer: getNodeXPath(annotation.range.endContainer),
       endOffset: annotation.range.endOffset,
     },
-    scrollElement: getNodeXPath(scrollElement),
+    scrollElement: getNodeXPath(annotation.scrollElement),
     metadata: metadataEncode(annotation.metadata),
   };
 }
 
+/**
+ * decode the `StoredAnnotation` to `Annotation`
+ */
 export function decode<M, S>(
   stored: StoredAnnotation<S>,
   decodeMetadata: (s: S) => M,
@@ -41,6 +41,9 @@ export function decode<M, S>(
   };
 }
 
+/**
+ * decode the `StoredAnnotation` to `DomAnnotation`
+ */
 export function decodeDom<M, S>(
   stored: StoredAnnotation<S>,
   decodeMetadata: (s: S) => M,
@@ -49,10 +52,17 @@ export function decodeDom<M, S>(
   if (!range) {
     return;
   }
+  const scrollElement = getNodeByXPath(stored.scrollElement);
+  if (!scrollElement) {
+    return;
+  }
+
   return {
     ...stored,
     range,
     createdAt: new Date(stored.createdAt),
+    // scroll element (if exist) must be `Element`
+    scrollElement: scrollElement as Element,
     metadata: decodeMetadata(stored.metadata),
   };
 }
