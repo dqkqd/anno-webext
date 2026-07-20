@@ -128,3 +128,25 @@ export type Store<M> = {
     ) => Promise<Annotation<M>>;
   };
 };
+
+export type Codec<M, S> = {
+  /**
+   * encode the `DomAnnotation` to `StoredAnnotation`
+   */
+  encode: (annotation: DomAnnotation<M>) => StoredAnnotation<S>;
+
+  /**
+   * decode the `StoredAnnotation` to `Annotation`
+   */
+  decode: (stored: StoredAnnotation<S>) => Annotation<M>;
+
+  /**
+   * decode the `StoredAnnotation` to `DomAnnotation`
+   */
+  decodeDom: (stored: StoredAnnotation<S>) => DomAnnotation<M> | undefined;
+
+  metadata: {
+    encode: (m: M) => S;
+    decode: (s: S) => M;
+  };
+};

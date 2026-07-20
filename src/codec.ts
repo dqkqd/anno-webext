@@ -1,69 +1,61 @@
 import { getNodeByXPath, getNodeXPath } from './location';
 import type {
+  AnnoOptions,
   Annotation,
+  Codec,
   DomAnnotation,
   StoredAnnotation,
   StoredRange,
 } from './types';
 
-/**
- * encode the `DomAnnotation` to `StoredAnnotation`
- */
-export function encode<M, S>(
-  annotation: DomAnnotation<M>,
-  metadataEncode: (m: M) => S,
-): StoredAnnotation<S> {
+export function createCodec<M, S>(options: AnnoOptions<M, S>): Codec<M, S> {
   return {
-    ...annotation,
-    createdAt: annotation.createdAt.toISOString(),
-    range: {
-      startContainer: getNodeXPath(annotation.range.startContainer),
-      startOffset: annotation.range.startOffset,
-      endContainer: getNodeXPath(annotation.range.endContainer),
-      endOffset: annotation.range.endOffset,
+    metadata: {
+      encode: options.encodeMetadata,
+      decode: options.decodeMetadata,
     },
-    scrollElement: getNodeXPath(annotation.scrollElement),
-    metadata: metadataEncode(annotation.metadata),
-  };
-}
+    encode: (annotation: DomAnnotation<M>): StoredAnnotation<S> => {
+      return {
+        ...annotation,
+        createdAt: annotation.createdAt.toISOString(),
+        range: {
+          startContainer: getNodeXPath(annotation.range.startContainer),
+          startOffset: annotation.range.startOffset,
+          endContainer: getNodeXPath(annotation.range.endContainer),
+          endOffset: annotation.range.endOffset,
+        },
+        scrollElement: getNodeXPath(annotation.scrollElement),
+        metadata: options.encodeMetadata(annotation.metadata),
+      };
+    },
 
-/**
- * decode the `StoredAnnotation` to `Annotation`
- */
-export function decode<M, S>(
-  stored: StoredAnnotation<S>,
-  decodeMetadata: (s: S) => M,
-): Annotation<M> {
-  return {
-    ...stored,
-    createdAt: new Date(stored.createdAt),
-    metadata: decodeMetadata(stored.metadata),
-  };
-}
+    decode: (stored: StoredAnnotation<S>): Annotation<M> => {
+      return {
+        ...stored,
+        createdAt: new Date(stored.createdAt),
+        metadata: options.decodeMetadata(stored.metadata),
+      };
+    },
 
-/**
- * decode the `StoredAnnotation` to `DomAnnotation`
- */
-export function decodeDom<M, S>(
-  stored: StoredAnnotation<S>,
-  decodeMetadata: (s: S) => M,
-): DomAnnotation<M> | undefined {
-  const range = decodeRange(stored.range);
-  if (!range) {
-    return;
-  }
-  const scrollElement = getNodeByXPath(stored.scrollElement);
-  if (!scrollElement) {
-    return;
-  }
+    decodeDom: (stored: StoredAnnotation<S>): DomAnnotation<M> | undefined => {
+      const range = decodeRange(stored.range);
+      if (!range) {
+        return;
+      }
+      const scrollElement = getNodeByXPath(stored.scrollElement);
+      if (!scrollElement) {
+        return;
+      }
 
-  return {
-    ...stored,
-    range,
-    createdAt: new Date(stored.createdAt),
-    // scroll element (if exist) must be `Element`
-    scrollElement: scrollElement as Element,
-    metadata: decodeMetadata(stored.metadata),
+      return {
+        ...stored,
+        range,
+        createdAt: new Date(stored.createdAt),
+        // scroll element (if exist) must be `Element`
+        scrollElement: scrollElement as Element,
+        metadata: options.decodeMetadata(stored.metadata),
+      };
+    },
   };
 }
 
