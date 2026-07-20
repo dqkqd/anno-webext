@@ -1,5 +1,5 @@
 import { normalizeUrl } from './normalize-url';
-import { queryDomAnnotations, recordDomAnnotation } from './registry';
+import { rtree } from './rtree';
 import { createStore } from './store';
 import type {
   Anno,
@@ -26,9 +26,7 @@ export function createAnno<M, S>(options: AnnoOptions<M, S>): Anno<M> {
     restore: async (): Promise<DomAnnotation<M>[]> => {
       return await initAnnotations(store);
     },
-    query: (queryOption) => {
-      return queryDomAnnotations(queryOption);
-    },
+    query: rtree.query,
   };
 
   const popup: AnnoPopup<M> = {
@@ -42,6 +40,7 @@ export function createAnno<M, S>(options: AnnoOptions<M, S>): Anno<M> {
       );
     },
   };
+
   return {
     content,
     popup,
@@ -82,7 +81,7 @@ export function annotate<M>(
   highlightRegistry.set(ANNOTATION_CLASS, highlights);
   selection.removeAllRanges();
 
-  recordDomAnnotation(annotation);
+  rtree.record(annotation);
   return annotation;
 }
 
@@ -102,7 +101,7 @@ async function restoreAnnotations<M>(
   const highlights = highlightRegistry.get(ANNOTATION_CLASS) ?? new Highlight();
   for (const annotation of annotations) {
     highlights.add(annotation.range);
-    recordDomAnnotation(annotation);
+    rtree.record(annotation);
   }
   highlightRegistry.set(ANNOTATION_CLASS, highlights);
 
