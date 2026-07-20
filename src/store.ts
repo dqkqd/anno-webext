@@ -8,7 +8,7 @@ import type {
   UUID,
 } from './types';
 
-export async function getStoredAnnotations<Meta>(): Promise<
+async function getStoredAnnotations<Meta>(): Promise<
   StoredAnnotations<Meta>
 > {
   const result = await chrome.storage.local.get({ highlights: {} });
