@@ -8,26 +8,40 @@ Published as a single ESM bundle `anno-webext`.
 
 ```text
 src/                    # library source, built to dist/
-  index.ts              # public entry point (createAnno())
+  index.ts              # public entry point — re-exports createAnno() + types
+  anno.ts               # core orchestration: annotate, restore, query, store
+  highlight.ts          # CSS Custom Highlight API wrapper
   location.ts           # XPath-based DOM node anchoring
   codec.ts              # encodes/decodes a Range to/from storage
   normalize-url.ts      # canonicalizes URLs used as storage keys
-  registry.ts           # RBush spatial index for point/hover queries
+  rtree.ts              # RBush spatial index for point/hover queries
   store.ts              # chrome.storage.local persistence
-  types.ts, global.d.ts # shared types
+  types.ts, global.d.ts # shared types, ambient declarations
 
 tests/                  # Playwright end-to-end specs
   fixtures.ts           # browser/extension launch fixtures
   utils.ts              # shared test helpers (select text, assert highlights)
-  *.spec.ts             # specs, one file per feature area
+  annotation.spec.ts    # annotate text across DOM structures + invalid/missing recovery
+  jump.spec.ts          # scroll-to-annotation via URL hash fragment
+  popup.spec.ts         # popup page: list annotations, update metadata (chromium only)
+  registry.spec.ts      # RBush spatial query (hover/point-based)
+  update-metadata-in-dom.spec.ts  # metadata update in content script DOM
+  url.spec.ts           # URL normalization + per-URL annotation isolation
   extension/            # sample MV3 extension that imports the built
                         # library; this is what Playwright actually loads
 
-dist/, tests/dist/      # build output — generated, don't edit
+dist/                   # library build output — generated, don't edit
+tests/dist/             # test extension build output — generated, don't edit
 
-vitest.config.ts        # vitest unit test configuration
+vitest.config.ts        # vitest unit test configuration (jsdom, src/**/*.test.ts)
+playwright.config.ts    # Playwright E2E: chromium + firefox projects
+tsconfig.json           # TS 6, ESNext, noEmit
+vite.config.ts          # library build (ESM lib + unplugin-dts with bundleTypes)
+vite.config.e2e.ts      # test extension build (multi-entry)
+eslint.config.ts        # ESLint flat config
+dprint.json             # dprint formatter config
 flake.nix, .envrc       # Nix devShell (node, browsers, playwright deps)
-.github/workflows/      # CI: test matrix, format check, lint, typo check
+.github/workflows/      # CI: anno.yml (unit + e2e + format + lint), typos.yml (spell check)
 ```
 
 ## Setup
@@ -57,6 +71,10 @@ npm run test:e2e                    # build:e2e + playwright test (chromium + fi
 npm run test:e2e -- --project=chromium
 npm run test:e2e -- --project=firefox
 npm run test:e2e:debug              # debug build + playwright --ui --headed
+npm run build:debug                 # non-minified build with inline sourcemaps
+npm run build:e2e:debug             # non-minified e2e build with inline sourcemaps
+npm run web-ext:firefox             # run test extension in Firefox via web-ext
+npm run web-ext:chrome              # run test extension in Chrome via web-ext
 ```
 
 ## Testing notes
