@@ -48,8 +48,8 @@ npm run build                       # build the library to dist/
 npm run build:test                  # build + bundle tests/extension into tests/dist/
 npm run lint                        # build + eslint
 npm run lint:fix                    # eslint --fix
-npm run format                      # biome, writes formatting fixes
-npm run format:check                # biome, check only
+npm run format                      # dprint, writes formatting fixes
+npm run format:check                # dprint, check only
 npm run test                        # build:test + playwright test (chromium + firefox)
 npm run test -- --project=chromium
 npm run test -- --project=firefox

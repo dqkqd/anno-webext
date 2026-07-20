@@ -2,8 +2,8 @@ import { expect, test } from './fixtures';
 import { annotateText } from './utils';
 
 test('query annotation after added', async ({ annotatedUrls, context }) => {
-	const page = await context.newPage();
-	const urls = await annotatedUrls(`
+  const page = await context.newPage();
+  const urls = await annotatedUrls(`
   <html>
     <body>
       <span>Hello world</span>
@@ -11,25 +11,25 @@ test('query annotation after added', async ({ annotatedUrls, context }) => {
     </body>
   </html>
 `);
-	await page.goto(urls[0]);
+  await page.goto(urls[0]);
 
-	// no content hover at first
-	await expect(page.locator('#hover')).toHaveText('');
+  // no content hover at first
+  await expect(page.locator('#hover')).toHaveText('');
 
-	await annotateText(page, 'Hello world');
+  await annotateText(page, 'Hello world');
 
-	// hover annotated text => show
-	await page.getByText('Hello', { exact: false }).first().hover();
-	await expect(page.locator('#hover')).toHaveText('Hello world');
+  // hover annotated text => show
+  await page.getByText('Hello', { exact: false }).first().hover();
+  await expect(page.locator('#hover')).toHaveText('Hello world');
 
-	// Move mouse out => hide
-	await page.mouse.move(100, 100);
-	await expect(page.locator('#hover')).toHaveText('');
+  // Move mouse out => hide
+  await page.mouse.move(100, 100);
+  await expect(page.locator('#hover')).toHaveText('');
 });
 
 test('query annotation then switch to other annotation', async ({ annotatedUrls, context }) => {
-	const page = await context.newPage();
-	const urls = await annotatedUrls(`
+  const page = await context.newPage();
+  const urls = await annotatedUrls(`
   <html>
     <body>
       <p>
@@ -44,31 +44,31 @@ test('query annotation then switch to other annotation', async ({ annotatedUrls,
     </body>
   </html>
 `);
-	await page.goto(urls[0]);
-	await annotateText(page, 'one');
-	await annotateText(page, 'two');
-	await annotateText(page, 'three');
+  await page.goto(urls[0]);
+  await annotateText(page, 'one');
+  await annotateText(page, 'two');
+  await annotateText(page, 'three');
 
-	// no content hover at first
-	await expect(page.locator('#hover')).toHaveText('');
+  // no content hover at first
+  await expect(page.locator('#hover')).toHaveText('');
 
-	await page.getByText('one').first().hover();
-	await expect(page.locator('#hover')).toHaveText('one');
+  await page.getByText('one').first().hover();
+  await expect(page.locator('#hover')).toHaveText('one');
 
-	await page.getByText('two').first().hover();
-	await expect(page.locator('#hover')).toHaveText('two');
+  await page.getByText('two').first().hover();
+  await expect(page.locator('#hover')).toHaveText('two');
 
-	await page.getByText('three').first().hover();
-	await expect(page.locator('#hover')).toHaveText('three');
+  await page.getByText('three').first().hover();
+  await expect(page.locator('#hover')).toHaveText('three');
 
-	// Move mouse out => hide
-	await page.mouse.move(100, 100);
-	await expect(page.locator('#hover')).toHaveText('');
+  // Move mouse out => hide
+  await page.mouse.move(100, 100);
+  await expect(page.locator('#hover')).toHaveText('');
 });
 
 test('query annotations on page load', async ({ annotatedUrls, context }) => {
-	const page = await context.newPage();
-	const urls = await annotatedUrls(`
+  const page = await context.newPage();
+  const urls = await annotatedUrls(`
   <html>
     <body>
       <p>
@@ -83,23 +83,23 @@ test('query annotations on page load', async ({ annotatedUrls, context }) => {
     </body>
   </html>
 `);
-	await page.goto(urls[0]);
-	await annotateText(page, 'one');
-	await annotateText(page, 'two');
+  await page.goto(urls[0]);
+  await annotateText(page, 'one');
+  await annotateText(page, 'two');
 
-	await page.reload();
+  await page.reload();
 
-	// no content hover at first
-	await expect(page.locator('#hover')).toHaveText('');
+  // no content hover at first
+  await expect(page.locator('#hover')).toHaveText('');
 
-	await page.getByText('one').first().hover();
-	await expect(page.locator('#hover')).toHaveText('one');
+  await page.getByText('one').first().hover();
+  await expect(page.locator('#hover')).toHaveText('one');
 
-	await page.getByText('two').first().hover();
-	await expect(page.locator('#hover')).toHaveText('two');
+  await page.getByText('two').first().hover();
+  await expect(page.locator('#hover')).toHaveText('two');
 
-	// add three
-	await annotateText(page, 'three');
-	await page.getByText('three').first().hover();
-	await expect(page.locator('#hover')).toHaveText('three');
+  // add three
+  await annotateText(page, 'three');
+  await page.getByText('three').first().hover();
+  await expect(page.locator('#hover')).toHaveText('three');
 });

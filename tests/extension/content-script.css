@@ -1,15 +1,15 @@
 :root {
-	--anno-bg: oklch(92% 0.14 95 / 0.5);
+  --anno-bg: oklch(92% 0.14 95 / 0.5);
 }
 
 @media (prefers-color-scheme: dark) {
-	:root {
-		--anno-bg: oklch(78% 0.16 95 / 0.45);
-	}
+  :root {
+    --anno-bg: oklch(78% 0.16 95 / 0.45);
+  }
 }
 
 /* eslint-disable-next-line css/use-baseline */
 ::highlight(anno--styles) {
-	background-color: var(--anno-bg);
-	color: inherit;
+  background-color: var(--anno-bg);
+  color: inherit;
 }
