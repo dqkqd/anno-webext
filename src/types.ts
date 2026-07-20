@@ -117,7 +117,7 @@ export type Anno<M> = {
   popup: AnnoPopup<M>;
 };
 
-export type Store<M> = {
+export type AnnoStore<M> = {
   content: {
     get: () => Promise<DomAnnotation<M>[]>;
     set: (annotation: DomAnnotation<M>) => Promise<void>;
@@ -131,7 +131,7 @@ export type Store<M> = {
   };
 };
 
-export type Codec<M, S> = {
+export type AnnoCodec<M, S> = {
   /**
    * encode the `DomAnnotation` to `StoredAnnotation`
    */

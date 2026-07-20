@@ -1,17 +1,17 @@
 import { createCodec } from './codec';
 import { normalizeUrl } from './normalize-url';
 import type {
+  AnnoCodec,
   AnnoOptions,
+  AnnoStore,
   Annotation,
   Annotations,
-  Codec,
   DomAnnotation,
-  Store,
   StoredAnnotation,
   UUID,
 } from './types';
 
-export function createStore<M, S>(options: AnnoOptions<M, S>): Store<M> {
+export function createStore<M, S>(options: AnnoOptions<M, S>): AnnoStore<M> {
   const codec = createCodec(options);
   return {
     content: {
@@ -59,7 +59,7 @@ function normalizeText(text: string): string {
 }
 
 async function contentGet<M, S>(
-  codec: Codec<M, S>,
+  codec: AnnoCodec<M, S>,
 ): Promise<DomAnnotation<M>[]> {
   const url = normalizeUrl(location.href);
   const storedAnnotations = await browserStorage.getByUrl<S>(url);
@@ -75,7 +75,7 @@ async function contentGet<M, S>(
 
 async function contentSet<M, S>(
   annotation: DomAnnotation<M>,
-  codec: Codec<M, S>,
+  codec: AnnoCodec<M, S>,
 ): Promise<void> {
   const storedAnnotations = await browserStorage.get<S>();
   const annotationsInUrl = storedAnnotations[annotation.normalizedUrl] ?? [];
@@ -90,7 +90,7 @@ async function contentSet<M, S>(
 }
 
 async function popupGet<M, S>(
-  codec: Codec<M, S>,
+  codec: AnnoCodec<M, S>,
 ): Promise<Annotations<M>> {
   const stored = await browserStorage.get<S>();
   const annotations = Object.fromEntries(
@@ -104,7 +104,7 @@ async function popupGet<M, S>(
 
 async function popupUpdateMetadata<M, S>(
   annotationId: UUID,
-  codec: Codec<M, S>,
+  codec: AnnoCodec<M, S>,
   updateFn: (m: M) => M,
 ): Promise<Annotation<M>> {
   const storedAnnotations = await browserStorage.get<S>();

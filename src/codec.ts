@@ -1,14 +1,14 @@
 import { getNodeByXPath, getNodeXPath } from './location';
 import type {
+  AnnoCodec,
   AnnoOptions,
   Annotation,
-  Codec,
   DomAnnotation,
   StoredAnnotation,
   StoredRange,
 } from './types';
 
-export function createCodec<M, S>(options: AnnoOptions<M, S>): Codec<M, S> {
+export function createCodec<M, S>(options: AnnoOptions<M, S>): AnnoCodec<M, S> {
   const metadata = options.metadata;
   return {
     metadata,
