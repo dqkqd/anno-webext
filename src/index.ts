@@ -137,6 +137,13 @@ function createAnnotationFromSelection<M>(
   const normalizedUrl = normalizeUrl(originalUrl);
   const annotationUrl = createAnnotationUrl(normalizedUrl, id);
 
+  // Add scroll element to the annotation.
+  // This must be an `Element`, which means if we are selecting a text node,
+  // then this should be its parent.
+  const scrollElement = range.startContainer.nodeType === Node.ELEMENT_NODE
+    ? (range.startContainer as Element)
+    : range.startContainer.parentElement!;
+
   return {
     id,
     version: STORE_FORMAT_VERSION,
@@ -145,8 +152,9 @@ function createAnnotationFromSelection<M>(
     normalizedUrl,
     annotationUrl,
     createdAt: new Date(),
-    metadata: createMetadata(),
     range,
+    scrollElement,
+    metadata: createMetadata(),
   };
 }
 

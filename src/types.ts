@@ -74,6 +74,10 @@ export interface DomAnnotation<M> extends Annotation<M> {
    * the actual range for the annotation (highlight) on the DOM
    */
   range: Range;
+  /*
+   * the closet element for the annotation
+   */
+  scrollElement: Element;
 }
 
 /**
