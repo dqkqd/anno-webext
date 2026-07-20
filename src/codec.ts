@@ -9,11 +9,9 @@ import type {
 } from './types';
 
 export function createCodec<M, S>(options: AnnoOptions<M, S>): Codec<M, S> {
+  const metadata = options.metadata;
   return {
-    metadata: {
-      encode: options.encodeMetadata,
-      decode: options.decodeMetadata,
-    },
+    metadata,
     encode: (annotation: DomAnnotation<M>): StoredAnnotation<S> => {
       return {
         ...annotation,
@@ -25,7 +23,7 @@ export function createCodec<M, S>(options: AnnoOptions<M, S>): Codec<M, S> {
           endOffset: annotation.range.endOffset,
         },
         scrollElement: getNodeXPath(annotation.scrollElement),
-        metadata: options.encodeMetadata(annotation.metadata),
+        metadata: metadata.encode(annotation.metadata),
       };
     },
 
@@ -33,7 +31,7 @@ export function createCodec<M, S>(options: AnnoOptions<M, S>): Codec<M, S> {
       return {
         ...stored,
         createdAt: new Date(stored.createdAt),
-        metadata: options.decodeMetadata(stored.metadata),
+        metadata: metadata.decode(stored.metadata),
       };
     },
 
@@ -53,7 +51,7 @@ export function createCodec<M, S>(options: AnnoOptions<M, S>): Codec<M, S> {
         createdAt: new Date(stored.createdAt),
         // scroll element (if exist) must be `Element`
         scrollElement: scrollElement as Element,
-        metadata: options.decodeMetadata(stored.metadata),
+        metadata: metadata.decode(stored.metadata),
       };
     },
   };

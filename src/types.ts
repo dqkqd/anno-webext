@@ -86,9 +86,11 @@ export interface StoredAnnotation<S> extends IAnnotation<S> {
 }
 
 export type AnnoOptions<Memory, Storable> = {
-  encodeMetadata: (m: Memory) => Storable;
-  decodeMetadata: (s: Storable) => Memory;
-  createMetadata: () => Memory;
+  metadata: {
+    init: () => Memory;
+    encode: (m: Memory) => Storable;
+    decode: (s: Storable) => Memory;
+  };
 };
 
 export type DomAnnotationQueryOptions = {

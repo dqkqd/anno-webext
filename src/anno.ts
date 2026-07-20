@@ -16,7 +16,7 @@ export function createAnno<M, S>(options: AnnoOptions<M, S>): Anno<M> {
   const store = createStore(options);
   const content: AnnoContent<M> = {
     annotate: async (): Promise<DomAnnotation<M> | undefined> => {
-      const annotation = annotate(options.createMetadata);
+      const annotation = annotate(options.metadata.init);
       if (!annotation) {
         return;
       }
