@@ -1,5 +1,9 @@
 import { expect, test } from './fixtures';
-import { annotateText, getAllAnnotatedUrls, waitForAnnotationsDom } from './utils';
+import {
+  annotateText,
+  getAllAnnotatedUrls,
+  waitForAnnotationsDom,
+} from './utils';
 
 test('jump to correct annotation', async ({ context, annotatedUrls }) => {
   const page = await context.newPage();
