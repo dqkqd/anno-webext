@@ -6,4 +6,5 @@ export const anno = createAnno({
     encode: (m: number) => String(m).padStart(20, '0'),
     decode: (s) => Number(s),
   },
+  cssClass: 'highlight--styles',
 });

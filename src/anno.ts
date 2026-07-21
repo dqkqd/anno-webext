@@ -13,7 +13,7 @@ import type {
 
 export function createAnno<M, S>(options: AnnoOptions<M, S>): Anno<M> {
   const store = createStore(options);
-  const highlightRegistry = createHighlightRegistry();
+  const highlightRegistry = createHighlightRegistry(options.cssClass);
 
   const content: AnnoContent<M> = {
     annotate: async (): Promise<DomAnnotation<M> | undefined> => {
