@@ -35,6 +35,13 @@ jobs:
       - *checkout
       - *setup-node
       - run: npm ci
+      - uses: actions/cache@v5
+        id: playwright-cache
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ matrix.browser }}-${{ hashFiles('package-lock.json') }}
+          restore-keys: |
+            playwright-${{ runner.os }}-${{ matrix.browser }}-
       - run: npx playwright install --with-deps ${{ matrix.browser }}
       - run: npm run test:e2e -- --project=${{ matrix.browser }}
 
@@ -57,3 +64,11 @@ jobs:
       - *setup-node
       - run: npm ci
       - run: npm run lint
+
+  typos:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v7
+      - uses: crate-ci/typos@v1.48.0
