@@ -7,9 +7,12 @@ import type {
   AnnoOptions,
   AnnoStore,
   DomAnnotation,
-  UUID,
 } from './types';
-import { normalizeUrl } from './url';
+import {
+  createAnnotationUrl,
+  getAnnotationIdFromUrl,
+  normalizeUrl,
+} from './url';
 
 export function createAnno<M, S>(options: AnnoOptions<M, S>): Anno<M> {
   const store = createStore(options);
@@ -42,8 +45,6 @@ export function createAnno<M, S>(options: AnnoOptions<M, S>): Anno<M> {
 }
 
 const STORE_FORMAT_VERSION = chrome.runtime.getManifest().version;
-
-const ANNOTATION_HASH_ANCHOR = 'anno-record-id';
 
 function annotate<M>(
   createMetadata: () => M,
@@ -91,20 +92,6 @@ function scrollToAnnotation<M>(
   if (annotation) {
     scrollToElement(annotation.scrollElement);
   }
-}
-
-function createAnnotationUrl(normalizedUrl: string, id: UUID): string {
-  return `${normalizedUrl}#${ANNOTATION_HASH_ANCHOR}=${id}`;
-}
-
-function getAnnotationIdFromUrl(): UUID | undefined {
-  const anchor = `${ANNOTATION_HASH_ANCHOR}=`;
-  const hash = location.hash;
-  const index = hash.indexOf(anchor);
-  if (index === -1) {
-    return;
-  }
-  return hash.slice(index + anchor.length, index + anchor.length + 36) as UUID;
 }
 
 function scrollToElement(element: Element): void {

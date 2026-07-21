@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { normalizeUrl } from './normalize-url';
+import { normalizeUrl } from './url';
 
 describe('normalizeUrl', () => {
   it('strips the utm_source parameter', () => {
