@@ -1,5 +1,4 @@
 import { AnnoHighlightRegistry, createHighlightRegistry } from './highlight';
-import { normalizeUrl } from './normalize-url';
 import { rtree } from './rtree';
 import { createStore } from './store';
 import type {
@@ -10,6 +9,7 @@ import type {
   DomAnnotation,
   UUID,
 } from './types';
+import { normalizeUrl } from './url';
 
 export function createAnno<M, S>(options: AnnoOptions<M, S>): Anno<M> {
   const store = createStore(options);

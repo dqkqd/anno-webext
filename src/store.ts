@@ -1,5 +1,4 @@
 import { createCodec } from './codec';
-import { normalizeUrl } from './normalize-url';
 import type {
   AnnoCodec,
   AnnoOptions,
@@ -10,6 +9,7 @@ import type {
   StoredAnnotation,
   UUID,
 } from './types';
+import { normalizeUrl } from './url';
 
 export function createStore<M, S>(options: AnnoOptions<M, S>): AnnoStore<M> {
   const codec = createCodec(options);
