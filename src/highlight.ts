@@ -3,6 +3,7 @@ import { DomAnnotation } from './types';
 export type AnnoHighlightRegistry = {
   get: () => Highlight;
   set: <M>(annotation: DomAnnotation<M>) => void;
+  clear: () => void;
 };
 
 const DEFAULT_ANNOTATION_CLASS = 'anno--styles';
@@ -22,6 +23,7 @@ export function createHighlightRegistry(
   userAnnotationClass?: string,
 ): AnnoHighlightRegistry {
   const annotationClass = userAnnotationClass ?? DEFAULT_ANNOTATION_CLASS;
+
   function get() {
     return highlightRegistry.get(annotationClass) ?? new Highlight();
   }
@@ -32,5 +34,9 @@ export function createHighlightRegistry(
     highlightRegistry.set(annotationClass, highlights);
   }
 
-  return { get, set };
+  function clear() {
+    highlightRegistry.clear();
+  }
+
+  return { get, set, clear };
 }

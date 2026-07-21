@@ -12,6 +12,9 @@ type RTreeAnnotation<M> = {
 };
 
 export const rtree = {
+  clear: (): void => {
+    domAnnotationsRegistry.clear();
+  },
   record: <M>(annotation: DomAnnotation<M>): void => {
     const rect = annotation.range.getBoundingClientRect();
     domAnnotationsRegistry.insert({
