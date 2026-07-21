@@ -6,9 +6,7 @@ import type {
   Anno,
   AnnoContent,
   AnnoOptions,
-  AnnoPopup,
   AnnoStore,
-  Annotations,
   DomAnnotation,
   UUID,
 } from './types';
@@ -32,16 +30,9 @@ export function createAnno<M, S>(options: AnnoOptions<M, S>): Anno<M> {
     query: rtree.query,
   };
 
-  const popup: AnnoPopup<M> = {
-    get: async (): Promise<Annotations<M>> => {
-      return await store.popup.get();
-    },
-    updateMetadata: async (annotationId: UUID, updateFn: (m: M) => M) => {
-      return await store.popup.updateMetadata(
-        annotationId,
-        updateFn,
-      );
-    },
+  const popup = {
+    get: store.popup.get,
+    updateMetadata: store.popup.updateMetadata,
   };
 
   return {
