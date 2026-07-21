@@ -33,7 +33,7 @@ export function createStore<M, S>(options: AnnoOptions<M, S>): AnnoStore<M> {
   };
 }
 
-type StoredAnnotations<Meta> = {
+export type StoredAnnotations<Meta> = {
   [normalizedUrl: string]: StoredAnnotation<Meta>[];
 };
 
