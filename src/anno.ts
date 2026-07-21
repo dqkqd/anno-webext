@@ -82,7 +82,7 @@ async function restoreAnnotations<M>(
 function scrollToAnnotation<M>(
   annotations: DomAnnotation<M>[],
 ) {
-  const annotationId = getAnnotationIdFromHash(location.hash);
+  const annotationId = getAnnotationIdFromUrl();
   if (!annotationId) {
     return;
   }
@@ -97,8 +97,9 @@ function createAnnotationUrl(normalizedUrl: string, id: UUID): string {
   return `${normalizedUrl}#${ANNOTATION_HASH_ANCHOR}=${id}`;
 }
 
-function getAnnotationIdFromHash(hash: string): UUID | undefined {
+function getAnnotationIdFromUrl(): UUID | undefined {
   const anchor = `${ANNOTATION_HASH_ANCHOR}=`;
+  const hash = location.hash;
   const index = hash.indexOf(anchor);
   if (index === -1) {
     return;
