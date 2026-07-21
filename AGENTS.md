@@ -13,7 +13,7 @@ src/                    # library source, built to dist/
   highlight.ts          # CSS Custom Highlight API wrapper
   location.ts           # XPath-based DOM node anchoring
   codec.ts              # encodes/decodes a Range to/from storage
-  normalize-url.ts      # canonicalizes URLs used as storage keys
+  url.ts                # canonicalizes URLs used as storage keys
   rtree.ts              # RBush spatial index for point/hover queries
   store.ts              # chrome.storage.local persistence
   types.ts, global.d.ts # shared types, ambient declarations

@@ -1,3 +1,5 @@
+import { UUID } from './types';
+
 // normalizeUrl from https://github.com/obsidianmd/obsidian-clipper/
 const EPHEMERAL_PARAMS = new Set([
   't', // YouTube timestamp
@@ -21,6 +23,8 @@ const EPHEMERAL_PARAMS = new Set([
   'si', // YouTube share tracking
 ]);
 
+const ANNOTATION_HASH_ANCHOR = 'anno-record-id';
+
 export function normalizeUrl(url: string): string {
   const parsed = new URL(url);
   parsed.hash = '';
@@ -33,4 +37,18 @@ export function normalizeUrl(url: string): string {
   }
   parsed.search = params.toString();
   return parsed.toString();
+}
+
+export function createAnnotationUrl(normalizedUrl: string, id: UUID): string {
+  return `${normalizedUrl}#${ANNOTATION_HASH_ANCHOR}=${id}`;
+}
+
+export function getAnnotationIdFromUrl(): UUID | undefined {
+  const anchor = `${ANNOTATION_HASH_ANCHOR}=`;
+  const hash = location.hash;
+  const index = hash.indexOf(anchor);
+  if (index === -1) {
+    return;
+  }
+  return hash.slice(index + anchor.length, index + anchor.length + 36) as UUID;
 }
