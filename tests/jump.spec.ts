@@ -1,5 +1,9 @@
 import { expect, test } from './fixtures';
-import { annotateText, getAllAnnotatedUrls } from './utils';
+import {
+  annotateText,
+  getAllAnnotatedUrls,
+  waitForAnnotationsDom,
+} from './utils';
 
 test('jump to correct annotation', async ({ context, annotatedUrls }) => {
   const page = await context.newPage();
@@ -29,6 +33,7 @@ test('jump to correct annotation', async ({ context, annotatedUrls }) => {
 
   await page.goto(allAnnotatedUrls[0].url);
   await page.reload();
+  await waitForAnnotationsDom(page);
   await expect(page.getByText('999', { exact: true }).first()).toBeInViewport();
 });
 
@@ -64,6 +69,7 @@ test('jump to multi-element annotation', async ({ context, annotatedUrls }) => {
 
   await page.goto(allAnnotatedUrls[0].url);
   await page.reload();
+  await waitForAnnotationsDom(page);
   await expect(page.getByText('Alpha', { exact: true }).first())
     .toBeInViewport();
   await expect(page.getByText('Beta', { exact: true }).first())
@@ -99,6 +105,7 @@ test('jump to incomplete-word annotation', async ({ context, annotatedUrls }) =>
 
   await page.goto(allAnnotatedUrls[0].url);
   await page.reload();
+  await waitForAnnotationsDom(page);
   await expect(page.getByText('Turing').first()).toBeInViewport();
 });
 
@@ -134,6 +141,7 @@ test('scroll to full element text', async ({ context, annotatedUrls }) => {
 
   await page.goto(allAnnotatedUrls[0].url);
   await page.reload();
+  await waitForAnnotationsDom(page);
   await expect(page.getByText('Hello world this is a full paragraph').first())
     .toBeInViewport();
 });
@@ -170,6 +178,7 @@ test('scroll to correct same-tag sibling', async ({ context, annotatedUrls }) =>
 
   await page.goto(allAnnotatedUrls[0].url);
   await page.reload();
+  await waitForAnnotationsDom(page);
   await expect(page.getByText('Second paragraph', { exact: true }).first())
     .toBeInViewport();
 });
@@ -204,6 +213,7 @@ test('scroll to nested inline element', async ({ context, annotatedUrls }) => {
 
   await page.goto(allAnnotatedUrls[0].url);
   await page.reload();
+  await waitForAnnotationsDom(page);
   await expect(page.getByText('bold', { exact: true }).first())
     .toBeInViewport();
 });
@@ -243,6 +253,7 @@ test('scroll to nested same-tag elements', async ({ context, annotatedUrls }) =>
 
   await page.goto(allAnnotatedUrls[0].url);
   await page.reload();
+  await waitForAnnotationsDom(page);
   await expect(page.getByText('Deeply nested content', { exact: true }).first())
     .toBeInViewport();
 });

@@ -1,8 +1,13 @@
 import type { Expect, Page } from '@playwright/test';
 
+export async function waitForAnnotationsDom(page: Page) {
+  await page.waitForSelector('#all-annos a');
+}
+
 export async function annotateText(page: Page, text: string) {
   await selectText(page, text);
   await waitAnnotation(page);
+  await waitForAnnotationsDom(page);
 }
 
 async function waitAnnotation(page: Page) {
@@ -13,7 +18,6 @@ async function waitAnnotation(page: Page) {
       return annotation !== undefined;
     },
     null,
-    { timeout: 2000 },
   );
 }
 

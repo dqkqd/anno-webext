@@ -26,7 +26,7 @@ export default defineConfig({
     emptyOutDir: true,
     rollupOptions: {
       input: {
-        'content-script': './tests/extension/content-script.tsx',
+        'content-script': './tests/extension/content-script.ts',
         'content-script-entry': './tests/extension/content-script-entry.ts',
         'background-script': './tests/extension/background-script.ts',
         index: './tests/extension/index.html',

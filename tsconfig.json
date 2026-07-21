@@ -10,7 +10,6 @@
     "checkJs": true,
     "moduleDetection": "force",
     "declaration": true,
-    "jsx": "react-jsx"
   },
   "include": [
     "src",

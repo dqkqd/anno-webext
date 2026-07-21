@@ -1,4 +1,7 @@
-import { AnnoHighlightRegistry, createHighlightRegistry } from './highlight';
+import {
+  type AnnoHighlightRegistry,
+  createHighlightRegistry,
+} from './highlight';
 import { rtree } from './rtree';
 import { createStore } from './store';
 import type {
@@ -71,6 +74,10 @@ async function restoreAnnotations<M>(
   store: AnnoStore<M>,
   highlightRegistry: AnnoHighlightRegistry,
 ): Promise<DomAnnotation<M>[]> {
+  // clear remaining inmemory annotations
+  highlightRegistry.clear();
+  rtree.clear();
+
   const annotations = await store.content.get();
   for (const annotation of annotations) {
     highlightRegistry.set(annotation);
