@@ -5,7 +5,7 @@ export type AnnoHighlightRegistry = {
   set: <M>(annotation: DomAnnotation<M>) => void;
 };
 
-const ANNOTATION_CLASS = 'anno--styles';
+const DEFAULT_ANNOTATION_CLASS = 'anno--styles';
 
 /**
  * `CSS.highlights` doesn't have correct property on firefox.
@@ -18,15 +18,18 @@ const ANNOTATION_CLASS = 'anno--styles';
 const highlightRegistry: HighlightRegistry =
   (window.wrappedJSObject ?? window).CSS.highlights;
 
-export function createHighlightRegistry(): AnnoHighlightRegistry {
+export function createHighlightRegistry(
+  userAnnotationClass?: string,
+): AnnoHighlightRegistry {
+  const annotationClass = userAnnotationClass ?? DEFAULT_ANNOTATION_CLASS;
   function get() {
-    return highlightRegistry.get(ANNOTATION_CLASS) ?? new Highlight();
+    return highlightRegistry.get(annotationClass) ?? new Highlight();
   }
 
   function set<M>(annotation: DomAnnotation<M>) {
     const highlights = get();
     highlights.add(annotation.range);
-    highlightRegistry.set(ANNOTATION_CLASS, highlights);
+    highlightRegistry.set(annotationClass, highlights);
   }
 
   return { get, set };

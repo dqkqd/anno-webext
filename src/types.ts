@@ -91,6 +91,7 @@ export type AnnoOptions<Memory, Storable> = {
     encode: (m: Memory) => Storable;
     decode: (s: Storable) => Memory;
   };
+  cssClass?: string;
 };
 
 export type DomAnnotationQueryOptions = {
