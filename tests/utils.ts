@@ -3,6 +3,9 @@ import type { Expect, Page } from '@playwright/test';
 export async function annotateText(page: Page, text: string) {
   await selectText(page, text);
   await waitAnnotation(page);
+  // wait until the annotation link appears in DOM, so getAllAnnotatedUrls
+  // in jump tests always sees it
+  await page.waitForSelector('#all-annos a', { timeout: 2000 });
 }
 
 async function waitAnnotation(page: Page) {

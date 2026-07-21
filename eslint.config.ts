@@ -1,7 +1,6 @@
 import css from '@eslint/css';
 import js from '@eslint/js';
 import typescriptEslintParser from '@typescript-eslint/parser';
-import reactHooks from 'eslint-plugin-react-hooks';
 import unicorn from 'eslint-plugin-unicorn';
 import { defineConfig, includeIgnoreFile } from 'eslint/config';
 import globals from 'globals';
@@ -30,10 +29,6 @@ export default defineConfig([
     extends: ['js/recommended'],
   },
   tseslint.configs.recommended,
-  {
-    files: ['**/*.tsx'],
-    extends: [reactHooks.configs.flat.recommended],
-  },
   {
     files: ['**/*.ts'],
     languageOptions: {
