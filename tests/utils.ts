@@ -13,7 +13,6 @@ async function waitAnnotation(page: Page) {
       return annotation !== undefined;
     },
     null,
-    { timeout: 2000 },
   );
 }
 

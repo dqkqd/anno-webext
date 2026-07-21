@@ -10,7 +10,7 @@ function Annos() {
   const [hoverValue, setHoverValue] = useState<string>('');
 
   useEffect(() => {
-    anno.content.restore().then(setAnnotations);
+    anno.content.restore().then(setAnnotations).catch(console.error);
   }, []);
 
   useEffect(() => {
