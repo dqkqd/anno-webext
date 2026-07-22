@@ -1,7 +1,7 @@
 import { vi } from 'vitest';
-import { createAnnotationFromSelection } from './anno';
-import type { StoredAnnotations } from './store';
-import type { AnnoOptions, DomAnnotation } from './types';
+import { createAnnotationFromSelection } from '../anno';
+import type { StoredAnnotations } from '../store';
+import type { AnnoOptions, DomAnnotation } from '../types';
 
 export type StoreTestMeta = { note: string; score: number };
 export type StoreTestStorable = { note: string; score: string };

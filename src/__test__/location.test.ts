@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it } from 'vitest';
-import { getNodeByXPath, getNodeXPath } from './location';
+import { getNodeByXPath, getNodeXPath } from '../location';
 
 function getNthText(parent: Node, index: number): Text {
   const texts = [...parent.childNodes].filter(n =>

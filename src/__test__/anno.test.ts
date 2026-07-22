@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
-import { createAnnotationFromSelection } from './anno';
-import { selectText } from './test-utils';
-import { normalizeUrl } from './url';
+import { createAnnotationFromSelection } from '../anno';
+import { normalizeUrl } from '../url';
+import { selectText } from './utils';
 
 describe('createAnnotationFromSelection', () => {
   it('creates a DomAnnotation from a text selection', () => {
