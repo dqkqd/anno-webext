@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it } from 'vitest';
-import { createCodec } from './codec';
-import type { AnnoOptions, DomAnnotation, StoredAnnotation } from './types';
+import { createCodec } from '../codec';
+import type { AnnoOptions, DomAnnotation, StoredAnnotation } from '../types';
 
 const options: AnnoOptions<string, string> = {
   metadata: {

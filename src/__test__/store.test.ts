@@ -1,13 +1,13 @@
 import { beforeAll, beforeEach, describe, expect, it } from 'vitest';
-import { createStore } from './store';
+import { createStore } from '../store';
+import type { UUID } from '../types';
 import {
   annoOptionsTest,
   annotateText,
   resetStore,
   setupStorageMock,
   type StoreTestMeta,
-} from './test-utils';
-import type { UUID } from './types';
+} from './utils';
 
 beforeAll(() => setupStorageMock());
 beforeEach(() => resetStore());
