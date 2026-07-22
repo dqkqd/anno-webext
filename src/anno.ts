@@ -2,6 +2,7 @@ import {
   type AnnoHighlightRegistry,
   createHighlightRegistry,
 } from './highlight';
+import { renderRange } from './render';
 import { rtree } from './rtree';
 import { createStore } from './store';
 import type {
@@ -133,7 +134,7 @@ export function createAnnotationFromSelection<M>(
   return {
     id,
     version: STORE_FORMAT_VERSION,
-    text: range.toString(),
+    text: renderRange(range),
     originalUrl,
     normalizedUrl,
     annotationUrl,

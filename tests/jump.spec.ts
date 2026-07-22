@@ -65,7 +65,7 @@ test('jump to multi-element annotation', async ({ context, annotatedUrls }) => {
 
   const allAnnotatedUrls = await getAllAnnotatedUrls(page);
   expect(allAnnotatedUrls).toHaveLength(1);
-  expect(allAnnotatedUrls[0].text).toStrictEqual('AlphaBeta');
+  expect(allAnnotatedUrls[0].text).toStrictEqual('Alpha\n\nBeta');
 
   await page.goto(allAnnotatedUrls[0].url);
   await page.reload();
