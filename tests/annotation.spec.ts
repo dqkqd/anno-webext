@@ -13,7 +13,10 @@ test('annotate text in element among siblings', async ({ annotatedUrls, context 
 `);
   await page.goto(urls[0]);
   await annotateText(page, 'Hello world');
-  await expectedToBeAnnotated(page, expect, ['Hello world']);
+  await expectedToBeAnnotated(page, expect, {
+    highlightTexts: ['Hello world'],
+    annotationTexts: ['Hello world'],
+  });
 });
 
 test('annotate text spanning inline elements', async ({ annotatedUrls, context }) => {
@@ -27,7 +30,10 @@ test('annotate text spanning inline elements', async ({ annotatedUrls, context }
 `);
   await page.goto(urls[0]);
   await annotateText(page, 'world there');
-  await expectedToBeAnnotated(page, expect, ['world there']);
+  await expectedToBeAnnotated(page, expect, {
+    highlightTexts: ['world there'],
+    annotationTexts: ['world there'],
+  });
 });
 
 test('annotate text in same-tag siblings', async ({ annotatedUrls, context }) => {
@@ -43,7 +49,10 @@ test('annotate text in same-tag siblings', async ({ annotatedUrls, context }) =>
 `);
   await page.goto(urls[0]);
   await annotateText(page, 'Second paragraph');
-  await expectedToBeAnnotated(page, expect, ['Second paragraph']);
+  await expectedToBeAnnotated(page, expect, {
+    highlightTexts: ['Second paragraph'],
+    annotationTexts: ['Second paragraph'],
+  });
 });
 
 test('annotate multiple texts in same-tag siblings', async ({ annotatedUrls, context }) => {
@@ -60,10 +69,10 @@ test('annotate multiple texts in same-tag siblings', async ({ annotatedUrls, con
   await page.goto(urls[0]);
   await annotateText(page, 'First paragraph');
   await annotateText(page, 'Third paragraph');
-  await expectedToBeAnnotated(page, expect, [
-    'First paragraph',
-    'Third paragraph',
-  ]);
+  await expectedToBeAnnotated(page, expect, {
+    highlightTexts: ['First paragraph', 'Third paragraph'],
+    annotationTexts: ['First paragraph', 'Third paragraph'],
+  });
 });
 
 test('annotate text in mixed-tag siblings', async ({ annotatedUrls, context }) => {
@@ -79,7 +88,10 @@ test('annotate text in mixed-tag siblings', async ({ annotatedUrls, context }) =
 `);
   await page.goto(urls[0]);
   await annotateText(page, 'Gamma');
-  await expectedToBeAnnotated(page, expect, ['Gamma']);
+  await expectedToBeAnnotated(page, expect, {
+    highlightTexts: ['Gamma'],
+    annotationTexts: ['Gamma'],
+  });
 });
 
 test('annotate deeply nested text', async ({ annotatedUrls, context }) => {
@@ -99,7 +111,10 @@ test('annotate deeply nested text', async ({ annotatedUrls, context }) => {
 `);
   await page.goto(urls[0]);
   await annotateText(page, 'Deeply nested text');
-  await expectedToBeAnnotated(page, expect, ['Deeply nested text']);
+  await expectedToBeAnnotated(page, expect, {
+    highlightTexts: ['Deeply nested text'],
+    annotationTexts: ['Deeply nested text'],
+  });
 });
 
 test('annotate text with comment between elements', async ({ annotatedUrls, context }) => {
@@ -115,7 +130,10 @@ test('annotate text with comment between elements', async ({ annotatedUrls, cont
 `);
   await page.goto(urls[0]);
   await annotateText(page, 'After comment');
-  await expectedToBeAnnotated(page, expect, ['After comment']);
+  await expectedToBeAnnotated(page, expect, {
+    highlightTexts: ['After comment'],
+    annotationTexts: ['After comment'],
+  });
 });
 
 test('annotate fragment text inside single text node', async ({ annotatedUrls, context }) => {
@@ -129,7 +147,10 @@ test('annotate fragment text inside single text node', async ({ annotatedUrls, c
 `);
   await page.goto(urls[0]);
   await annotateText(page, 'Turing');
-  await expectedToBeAnnotated(page, expect, ['Turing']);
+  await expectedToBeAnnotated(page, expect, {
+    highlightTexts: ['Turing'],
+    annotationTexts: ['Turing'],
+  });
 });
 
 test('annotate fragment text inside a word', async ({ annotatedUrls, context }) => {
@@ -143,7 +164,10 @@ test('annotate fragment text inside a word', async ({ annotatedUrls, context }) 
 `);
   await page.goto(urls[0]);
   await annotateText(page, 'urin');
-  await expectedToBeAnnotated(page, expect, ['urin']);
+  await expectedToBeAnnotated(page, expect, {
+    highlightTexts: ['urin'],
+    annotationTexts: ['urin'],
+  });
 });
 
 test('annotate fragment text spanning element boundary', async ({ annotatedUrls, context }) => {
@@ -157,7 +181,10 @@ test('annotate fragment text spanning element boundary', async ({ annotatedUrls,
 `);
   await page.goto(urls[0]);
   await annotateText(page, 'n Tur');
-  await expectedToBeAnnotated(page, expect, ['n Tur']);
+  await expectedToBeAnnotated(page, expect, {
+    highlightTexts: ['n Tur'],
+    annotationTexts: ['n Tur'],
+  });
 });
 
 test('annotate text in large list of same-tag siblings', async ({ annotatedUrls, context }) => {
@@ -177,7 +204,10 @@ test('annotate text in large list of same-tag siblings', async ({ annotatedUrls,
 `);
   await page.goto(urls[0]);
   await annotateText(page, 'Item 25');
-  await expectedToBeAnnotated(page, expect, ['Item 25']);
+  await expectedToBeAnnotated(page, expect, {
+    highlightTexts: ['Item 25'],
+    annotationTexts: ['Item 25'],
+  });
 });
 
 test('annotate text with nested inline elements', async ({ annotatedUrls, context }) => {
@@ -191,7 +221,30 @@ test('annotate text with nested inline elements', async ({ annotatedUrls, contex
 `);
   await page.goto(urls[0]);
   await annotateText(page, 'middle bold text');
-  await expectedToBeAnnotated(page, expect, ['middle bold text']);
+  await expectedToBeAnnotated(page, expect, {
+    highlightTexts: ['middle bold text'],
+    annotationTexts: ['middle bold text'],
+  });
+});
+
+test('annotate text across paragraph elements', async ({ annotatedUrls, context }) => {
+  const page = await context.newPage();
+  const urls = await annotatedUrls(`
+    <html>
+      <body>
+        <p>Hello</p><p>World</p>
+      </body>
+    </html>
+  `);
+  await page.goto(urls[0]);
+  await annotateText(page, 'HelloWorld');
+
+  // highlight: Range.toString() — raw text content, no block separators
+  // annotation: selection.toString() — browser inserts newlines between blocks
+  await expectedToBeAnnotated(page, expect, {
+    highlightTexts: ['HelloWorld'],
+    annotationTexts: ['Hello\n\nWorld'],
+  });
 });
 
 test('restore annotations should not crash if one of the annotations is invalid', async ({ annotatedUrls, context }) => {
@@ -211,7 +264,10 @@ test('restore annotations should not crash if one of the annotations is invalid'
   await page.goto(urls[0]);
   await annotateText(page, 'Highlight1');
   await annotateText(page, 'Highlight2');
-  await expectedToBeAnnotated(page, expect, ['Highlight1', 'Highlight2']);
+  await expectedToBeAnnotated(page, expect, {
+    highlightTexts: ['Highlight1', 'Highlight2'],
+    annotationTexts: ['Highlight1', 'Highlight2'],
+  });
 
   // rewrite url
   await annotatedUrls({
@@ -228,7 +284,10 @@ test('restore annotations should not crash if one of the annotations is invalid'
 
   await page.goto(urls[0]);
   // Highlight1 is still activated, but not Highlight2 here
-  await expectedToBeAnnotated(page, expect, ['Highlight1']);
+  await expectedToBeAnnotated(page, expect, {
+    highlightTexts: ['Highlight1'],
+    annotationTexts: ['Highlight1'],
+  });
 });
 
 test('does not restore annotation when DOM text changes at same XPath', async ({ annotatedUrls, context }) => {
@@ -245,7 +304,10 @@ test('does not restore annotation when DOM text changes at same XPath', async ({
   await page.goto(urls[0]);
   await annotateText(page, 'one');
   await annotateText(page, 'two');
-  await expectedToBeAnnotated(page, expect, ['one', 'two']);
+  await expectedToBeAnnotated(page, expect, {
+    highlightTexts: ['one', 'two'],
+    annotationTexts: ['one', 'two'],
+  });
 
   // Overwrite the same URL with modified HTML: second paragraph now says "three"
   await annotatedUrls({
@@ -264,5 +326,8 @@ test('does not restore annotation when DOM text changes at same XPath', async ({
 
   // Only 'one' should be restored; 'two' was removed, so its XPath now
   // points to 'three', which must NOT be annotated.
-  await expectedToBeAnnotated(page, expect, ['one']);
+  await expectedToBeAnnotated(page, expect, {
+    highlightTexts: ['one'],
+    annotationTexts: ['one'],
+  });
 });

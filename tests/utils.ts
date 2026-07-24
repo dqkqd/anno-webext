@@ -33,6 +33,9 @@ export async function getAllAnnotatedUrls(
   return res;
 }
 
+// Range.toString() extracts raw text from DOM ranges registered in
+// CSS.highlights. This verifies the highlight API pipeline and serves as
+// a proxy for checking highlight region boundaries in the DOM.
 async function assertAnnotations(page: Page, expect: Expect, texts: string[]) {
   await waitAnnotation(page);
   const annotatedText = await page.evaluate(() => {
@@ -47,14 +50,32 @@ async function assertAnnotations(page: Page, expect: Expect, texts: string[]) {
   expect([...annotatedText!].sort()).toEqual([...texts].sort());
 }
 
-export async function expectedToBeAnnotated(
+async function assertAnnotationTexts(
   page: Page,
   expect: Expect,
   texts: string[],
 ) {
-  await assertAnnotations(page, expect, texts);
+  await waitForAnnotationsDom(page);
+  const annotationTexts = await page.locator('#all-annos a').allTextContents();
+  expect(annotationTexts.length).toBe(texts.length);
+  expect([...annotationTexts].sort()).toEqual([...texts].sort());
+}
+
+type ExpectedOptions = {
+  highlightTexts: string[];
+  annotationTexts: string[];
+};
+
+export async function expectedToBeAnnotated(
+  page: Page,
+  expect: Expect,
+  options: ExpectedOptions,
+) {
+  await assertAnnotations(page, expect, options.highlightTexts);
+  await assertAnnotationTexts(page, expect, options.annotationTexts);
   await page.reload();
-  await assertAnnotations(page, expect, texts);
+  await assertAnnotations(page, expect, options.highlightTexts);
+  await assertAnnotationTexts(page, expect, options.annotationTexts);
 }
 
 async function selectText(page: Page, text: string): Promise<void> {
