@@ -26,11 +26,23 @@ test('basic popup', async ({ annotatedUrls, context, popupUrl }) => {
 
   // Select one
   await page.goto(urls[0]);
-  await annotateText(page, 'one');
+  await annotateText(page, (document) => {
+    const p = document.querySelector('p')!;
+    const range = document.createRange();
+    range.setStart(p.firstChild!, 4);
+    range.setEnd(p.firstChild!, 7);
+    return range;
+  });
 
   // Select Two
   await page.goto(urls[1]);
-  await annotateText(page, 'Two');
+  await annotateText(page, (document) => {
+    const p = document.querySelector('p')!;
+    const range = document.createRange();
+    range.setStart(p.firstChild!, 0);
+    range.setEnd(p.firstChild!, 3);
+    return range;
+  });
 
   await page.goto(popupUrl);
   await expect(page.locator('body')).not.toContainText(
@@ -64,7 +76,13 @@ test('update metadata', async ({ annotatedUrls, context, popupUrl }) => {
 `,
   );
   await page.goto(urls[0]);
-  await annotateText(page, 'one');
+  await annotateText(page, (document) => {
+    const p = document.querySelector('p')!;
+    const range = document.createRange();
+    range.setStart(p.firstChild!, 4);
+    range.setEnd(p.firstChild!, 7);
+    return range;
+  });
 
   await page.goto(popupUrl);
   const metadata = await page.locator('li > span:nth-child(2)').textContent();

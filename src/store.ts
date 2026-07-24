@@ -1,5 +1,4 @@
 import { createCodec } from './codec';
-import { renderRange } from './render';
 import type {
   AnnoCodec,
   AnnoOptions,
@@ -55,7 +54,7 @@ const browserStorage = {
   },
 };
 
-function normalizeText(text: string): string {
+export function normalizeText(text: string): string {
   return text.replace(/\s+/g, ' ').trim();
 }
 
@@ -70,7 +69,7 @@ async function contentGet<M, S>(
   const validAnnotations = annotations.filter((a) => a !== undefined)
     .filter((
       a,
-    ) => normalizeText(renderRange(a.range)) === normalizeText(a.text));
+    ) => normalizeText(a.range.toString()) === normalizeText(a.text));
   return validAnnotations;
 }
 

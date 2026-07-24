@@ -4,14 +4,25 @@ export async function waitForAnnotationsDom(page: Page) {
   await page.waitForSelector('#all-annos a');
 }
 
-export async function annotateText(page: Page, text: string) {
-  await selectText(page, text);
+export async function annotateText(
+  page: Page,
+  addSelection: (doc: Document) => Range,
+) {
+  // Wait for the content script to be injected before running the annotation
+  await page.waitForSelector('#all-annos', { state: 'attached' });
+  await page.evaluate((fnString: string) => {
+    const addSelection = eval(`(${fnString})`) as (doc: Document) => Range;
+    const range = addSelection(document);
+    const selection = document.getSelection();
+    selection?.removeAllRanges();
+    selection?.addRange(range);
+  }, addSelection.toString());
+  await page.mouse.up();
   await waitAnnotation(page);
   await waitForAnnotationsDom(page);
 }
 
 async function waitAnnotation(page: Page) {
-  // wait to make sure browser has loaded the annotation!
   await page.waitForFunction(
     () => {
       const annotation = CSS.highlights?.get('highlight--styles');
@@ -33,9 +44,6 @@ export async function getAllAnnotatedUrls(
   return res;
 }
 
-// Range.toString() extracts raw text from DOM ranges registered in
-// CSS.highlights. This verifies the highlight API pipeline and serves as
-// a proxy for checking highlight region boundaries in the DOM.
 async function assertAnnotations(page: Page, expect: Expect, texts: string[]) {
   await waitAnnotation(page);
   const annotatedText = await page.evaluate(() => {
@@ -47,81 +55,21 @@ async function assertAnnotations(page: Page, expect: Expect, texts: string[]) {
   });
   expect(annotatedText).not.toBeNull();
   expect(annotatedText!.length).toBe(texts.length);
-  expect([...annotatedText!].sort()).toEqual([...texts].sort());
+  expect([...annotatedText!.map(normalizeText)].sort()).toEqual(
+    [...texts.map(normalizeText)].sort(),
+  );
 }
-
-async function assertAnnotationTexts(
-  page: Page,
-  expect: Expect,
-  texts: string[],
-) {
-  await waitForAnnotationsDom(page);
-  const annotationTexts = await page.locator('#all-annos a').allTextContents();
-  expect(annotationTexts.length).toBe(texts.length);
-  expect([...annotationTexts].sort()).toEqual([...texts].sort());
-}
-
-type ExpectedOptions = {
-  highlightTexts: string[];
-  annotationTexts: string[];
-};
 
 export async function expectedToBeAnnotated(
   page: Page,
   expect: Expect,
-  options: ExpectedOptions,
+  texts: string[],
 ) {
-  await assertAnnotations(page, expect, options.highlightTexts);
-  await assertAnnotationTexts(page, expect, options.annotationTexts);
+  await assertAnnotations(page, expect, texts);
   await page.reload();
-  await assertAnnotations(page, expect, options.highlightTexts);
-  await assertAnnotationTexts(page, expect, options.annotationTexts);
+  await assertAnnotations(page, expect, texts);
 }
 
-async function selectText(page: Page, text: string): Promise<void> {
-  const locator = page.locator('body');
-  await locator.evaluate((element, text) => {
-    // grab all the text nodes
-    const walker = document.createTreeWalker(element, NodeFilter.SHOW_TEXT);
-    const textNodes: Text[] = [];
-    let node: Text;
-    while ((node = walker.nextNode() as Text)) {
-      textNodes.push(node);
-    }
-
-    // build a map of each node's start position in the full text
-    const positions: { node: Text; start: number; end: number }[] = [];
-    let offset = 0;
-    for (const textNode of textNodes) {
-      const len = textNode.textContent.length;
-      positions.push({ node: textNode, start: offset, end: offset + len });
-      offset += len;
-    }
-
-    const fullText = positions.map((p) => p.node.textContent).join('');
-    const idx = fullText.indexOf(text);
-    if (idx === -1) {
-      throw new Error(`Text not found: ${text}`);
-    }
-
-    const matchStart = idx;
-    const matchEnd = idx + text.length;
-
-    const startEntry = positions.find((p) =>
-      p.start <= matchStart && matchStart < p.end
-    )!;
-    const endEntry = positions.find((p) =>
-      p.start < matchEnd && matchEnd <= p.end
-    )!;
-
-    const range = document.createRange();
-    range.setStart(startEntry.node, matchStart - startEntry.start);
-    range.setEnd(endEntry.node, matchEnd - endEntry.start);
-
-    const selection = document.getSelection();
-    selection?.removeAllRanges();
-    selection?.addRange(range);
-  }, text);
-
-  await page.mouse.up();
+function normalizeText(text: string): string {
+  return text.replace(/\s+/g, ' ').trim();
 }

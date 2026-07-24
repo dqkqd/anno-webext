@@ -12,7 +12,13 @@ test('annotate text in element among siblings', async ({ annotatedUrls, context 
   </html>
 `);
   await page.goto(urls[0]);
-  await annotateText(page, 'Hello world');
+  await annotateText(page, (document) => {
+    const p = document.querySelector('p')!;
+    const range = document.createRange();
+    range.setStart(p.firstChild!, 0);
+    range.setEnd(p.firstChild!, 11);
+    return range;
+  });
 
   await page.locator('button').click();
 
