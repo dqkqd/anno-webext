@@ -16,7 +16,13 @@ test('query annotation after added', async ({ annotatedUrls, context }) => {
   // no content hover at first
   await expect(page.locator('#hover')).toHaveText('');
 
-  await annotateText(page, 'Hello world');
+  await annotateText(page, (document) => {
+    const span = document.querySelector('span')!;
+    const range = document.createRange();
+    range.setStart(span.firstChild!, 0);
+    range.setEnd(span.firstChild!, 11);
+    return range;
+  });
 
   // hover annotated text => show
   await page.getByText('Hello', { exact: false }).first().hover();
@@ -45,9 +51,27 @@ test('query annotation then switch to other annotation', async ({ annotatedUrls,
   </html>
 `);
   await page.goto(urls[0]);
-  await annotateText(page, 'one');
-  await annotateText(page, 'two');
-  await annotateText(page, 'three');
+  await annotateText(page, (document) => {
+    const span = document.querySelectorAll('span')[0];
+    const range = document.createRange();
+    range.setStart(span.firstChild!, 0);
+    range.setEnd(span.firstChild!, 3);
+    return range;
+  });
+  await annotateText(page, (document) => {
+    const span = document.querySelectorAll('span')[1];
+    const range = document.createRange();
+    range.setStart(span.firstChild!, 0);
+    range.setEnd(span.firstChild!, 3);
+    return range;
+  });
+  await annotateText(page, (document) => {
+    const span = document.querySelectorAll('span')[2];
+    const range = document.createRange();
+    range.setStart(span.firstChild!, 0);
+    range.setEnd(span.firstChild!, 5);
+    return range;
+  });
 
   // no content hover at first
   await expect(page.locator('#hover')).toHaveText('');
@@ -84,8 +108,20 @@ test('query annotations on page load', async ({ annotatedUrls, context }) => {
   </html>
 `);
   await page.goto(urls[0]);
-  await annotateText(page, 'one');
-  await annotateText(page, 'two');
+  await annotateText(page, (document) => {
+    const span = document.querySelectorAll('span')[0];
+    const range = document.createRange();
+    range.setStart(span.firstChild!, 0);
+    range.setEnd(span.firstChild!, 3);
+    return range;
+  });
+  await annotateText(page, (document) => {
+    const span = document.querySelectorAll('span')[1];
+    const range = document.createRange();
+    range.setStart(span.firstChild!, 0);
+    range.setEnd(span.firstChild!, 3);
+    return range;
+  });
 
   await page.reload();
 
@@ -99,7 +135,13 @@ test('query annotations on page load', async ({ annotatedUrls, context }) => {
   await expect(page.locator('#hover')).toHaveText('two');
 
   // add three
-  await annotateText(page, 'three');
+  await annotateText(page, (document) => {
+    const span = document.querySelectorAll('span')[2];
+    const range = document.createRange();
+    range.setStart(span.firstChild!, 0);
+    range.setEnd(span.firstChild!, 5);
+    return range;
+  });
   await page.getByText('three').first().hover();
   await expect(page.locator('#hover')).toHaveText('three');
 });

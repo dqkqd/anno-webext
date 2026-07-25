@@ -25,7 +25,13 @@ test('jump to correct annotation', async ({ context, annotatedUrls }) => {
   await expect(page.getByText('999', { exact: true }).first()).not
     .toBeInViewport();
 
-  await annotateText(page, '999');
+  await annotateText(page, (document) => {
+    const p = document.querySelectorAll('p')[999];
+    const range = document.createRange();
+    range.setStart(p.firstChild!, 0);
+    range.setEnd(p.firstChild!, 3);
+    return range;
+  });
 
   const allAnnotatedUrls = await getAllAnnotatedUrls(page);
   expect(allAnnotatedUrls).toHaveLength(1);
@@ -48,7 +54,8 @@ test('jump to multi-element annotation', async ({ context, annotatedUrls }) => {
     <body>
       <h1>Page1<h1>
       ${filler}
-      <p>Alpha</p><p>Beta</p>
+      <p>Alpha</p>
+      <p>Beta</p>
       ${filler}
     </body>
   </html>
@@ -61,11 +68,17 @@ test('jump to multi-element annotation', async ({ context, annotatedUrls }) => {
   await expect(page.getByText('Beta', { exact: true }).first()).not
     .toBeInViewport();
 
-  await annotateText(page, 'AlphaBeta');
+  await annotateText(page, (document) => {
+    const ps = document.querySelectorAll('p');
+    const range = document.createRange();
+    range.setStart(ps[500].firstChild!, 0);
+    range.setEnd(ps[501].firstChild!, 4);
+    return range;
+  });
 
   const allAnnotatedUrls = await getAllAnnotatedUrls(page);
   expect(allAnnotatedUrls).toHaveLength(1);
-  expect(allAnnotatedUrls[0].text).toStrictEqual('Alpha\n\nBeta');
+  expect(allAnnotatedUrls[0].text).toStrictEqual('Alpha Beta');
 
   await page.goto(allAnnotatedUrls[0].url);
   await page.reload();
@@ -97,7 +110,13 @@ test('jump to incomplete-word annotation', async ({ context, annotatedUrls }) =>
   await page.goto(urls[0]);
   await expect(page.getByText('Turing').first()).not.toBeInViewport();
 
-  await annotateText(page, 'urin');
+  await annotateText(page, (document) => {
+    const p = document.querySelectorAll('p')[500];
+    const range = document.createRange();
+    range.setStart(p.firstChild!, 6);
+    range.setEnd(p.firstChild!, 10);
+    return range;
+  });
 
   const allAnnotatedUrls = await getAllAnnotatedUrls(page);
   expect(allAnnotatedUrls).toHaveLength(1);
@@ -131,7 +150,13 @@ test('scroll to full element text', async ({ context, annotatedUrls }) => {
   await expect(page.getByText('Hello world this is a full paragraph').first())
     .not.toBeInViewport();
 
-  await annotateText(page, 'Hello world this is a full paragraph');
+  await annotateText(page, (document) => {
+    const p = document.querySelector('#target')!;
+    const range = document.createRange();
+    range.setStart(p.firstChild!, 0);
+    range.setEnd(p.firstChild!, 36);
+    return range;
+  });
 
   const allAnnotatedUrls = await getAllAnnotatedUrls(page);
   expect(allAnnotatedUrls).toHaveLength(1);
@@ -170,7 +195,13 @@ test('scroll to correct same-tag sibling', async ({ context, annotatedUrls }) =>
   await expect(page.getByText('Second paragraph', { exact: true }).first()).not
     .toBeInViewport();
 
-  await annotateText(page, 'Second paragraph');
+  await annotateText(page, (document) => {
+    const p = document.querySelectorAll('p')[501];
+    const range = document.createRange();
+    range.setStart(p.firstChild!, 0);
+    range.setEnd(p.firstChild!, 16);
+    return range;
+  });
 
   const allAnnotatedUrls = await getAllAnnotatedUrls(page);
   expect(allAnnotatedUrls).toHaveLength(1);
@@ -205,7 +236,13 @@ test('scroll to nested inline element', async ({ context, annotatedUrls }) => {
   await expect(page.getByText('bold', { exact: true }).first()).not
     .toBeInViewport();
 
-  await annotateText(page, 'bold');
+  await annotateText(page, (document) => {
+    const b = document.querySelector('#target')!;
+    const range = document.createRange();
+    range.setStart(b.firstChild!, 0);
+    range.setEnd(b.firstChild!, 4);
+    return range;
+  });
 
   const allAnnotatedUrls = await getAllAnnotatedUrls(page);
   expect(allAnnotatedUrls).toHaveLength(1);
@@ -245,7 +282,13 @@ test('scroll to nested same-tag elements', async ({ context, annotatedUrls }) =>
     page.getByText('Deeply nested content', { exact: true }).first(),
   ).not.toBeInViewport();
 
-  await annotateText(page, 'Deeply nested content');
+  await annotateText(page, (document) => {
+    const div = document.querySelector('#target')!;
+    const range = document.createRange();
+    range.setStart(div.firstChild!, 0);
+    range.setEnd(div.firstChild!, 21);
+    return range;
+  });
 
   const allAnnotatedUrls = await getAllAnnotatedUrls(page);
   expect(allAnnotatedUrls).toHaveLength(1);
