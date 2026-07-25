@@ -17,9 +17,9 @@ export function createCodec<M, S>(options: AnnoOptions<M, S>): AnnoCodec<M, S> {
         ...annotation,
         createdAt: annotation.createdAt.toISOString(),
         range: {
-          startContainer: getNodeXPath(annotation.range.startContainer),
+          startContainerXPath: getNodeXPath(annotation.range.startContainer),
           startOffset: annotation.range.startOffset,
-          endContainer: getNodeXPath(annotation.range.endContainer),
+          endContainerXPath: getNodeXPath(annotation.range.endContainer),
           endOffset: annotation.range.endOffset,
         },
         scrollElement: getNodeXPath(annotation.scrollElement),
@@ -36,6 +36,8 @@ export function createCodec<M, S>(options: AnnoOptions<M, S>): AnnoCodec<M, S> {
     },
 
     decodeDom: (stored: StoredAnnotation<S>): DomAnnotation<M> | undefined => {
+      // TODO: this should return 3 cases: valid, recoverable, unrecorverable!
+      // so that outer can easily reuse!
       const range = decodeRange(stored.range);
       if (!range) {
         return;
@@ -63,11 +65,11 @@ export function createCodec<M, S>(options: AnnoOptions<M, S>): AnnoCodec<M, S> {
  */
 function decodeRange(r: StoredRange): Range | undefined {
   const range = document.createRange();
-  const startNode = getNodeByXPath(r.startContainer);
+  const startNode = getNodeByXPath(r.startContainerXPath);
   if (!startNode) {
     return;
   }
-  const endNode = getNodeByXPath(r.endContainer);
+  const endNode = getNodeByXPath(r.endContainerXPath);
   if (!endNode) {
     return;
   }

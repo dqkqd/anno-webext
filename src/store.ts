@@ -4,6 +4,7 @@ import type {
   AnnoCodec,
   AnnoOptions,
   AnnoStore,
+  AnnoStoreContentGet,
   Annotation,
   Annotations,
   DomAnnotation,
@@ -57,47 +58,51 @@ const browserStorage = {
 
 async function contentGet<M, S>(
   codec: AnnoCodec<M, S>,
-): Promise<{ restored: DomAnnotation<M>[]; recovered: DomAnnotation<M>[] }> {
+): Promise<AnnoStoreContentGet<M>> {
   const url = normalizeUrl(location.href);
   const storedAnnotations = await browserStorage.getByUrl<S>(url);
-  const restoredAnnotations: DomAnnotation<M>[] = [];
-  const recoveredAnnotations: DomAnnotation<M>[] = [];
+
+  const valid: DomAnnotation<M>[] = [];
+  const recoverable: DomAnnotation<M>[] = [];
+  const unrecoverable: Annotation<M>[] = [];
+
   for (const stored of storedAnnotations) {
     const annotation = codec.decodeDom(stored);
-    if (
-      annotation
+
+    // an annotation is valid in the dom if the restored range match with the text itself
+    const isValid = annotation !== undefined
       && normalizeText(annotation.range.toString())
-        === normalizeText(stored.text)
-    ) {
-      // valid annotation!
-      restoredAnnotations.push(annotation);
-    } else {
-      // invalid annotation! this is due to xpath stale
-      const range = getRangeByText(document.body, stored.text);
-      if (range !== undefined) {
-        const scrollElement =
-          range.startContainer.nodeType === Node.ELEMENT_NODE
-            ? (range.startContainer as Element)
-            : range.startContainer.parentElement!;
-        const newAnnotation: DomAnnotation<M> = {
-          ...codec.decode(stored),
-          range,
-          scrollElement,
-          metadata: codec.metadata.decode(stored.metadata),
-        };
-        recoveredAnnotations.push(newAnnotation);
-      } else {
-        console.warn(`Cannot find correct range for text: ${stored.text}`);
-      }
+        === normalizeText(stored.text);
+    if (isValid) {
+      valid.push(annotation);
+      continue;
     }
+
+    // The annotation is not valid, which means the DOM xpath is stale and it now point to a different node, or not exist anymore.
+    // We try to search by the stored text first, to get the matching node first.
+    // TODO: should we search the whole body?
+    const range = getRangeByText(document.body, stored.text);
+    const newAnnotation = codec.decode(stored);
+
+    // No range can be found for the given text, this is an unrecoverable annotation
+    if (range === undefined) {
+      unrecoverable.push(newAnnotation);
+      continue;
+    }
+
+    // TODO: scrollElement is duplicated here
+    const scrollElement = range.startContainer.nodeType === Node.ELEMENT_NODE
+      ? (range.startContainer as Element)
+      : range.startContainer.parentElement!;
+    recoverable.push({
+      ...newAnnotation,
+      range,
+      scrollElement,
+      metadata: codec.metadata.decode(stored.metadata),
+    });
   }
-  // TODO: handle missing annotation (This is because range is missing)
-  // TODO: handle deleted / invalid annotation!
-  // const validAnnotations = annotations.filter((a) => a !== undefined)
-  //   .filter((
-  //     a,
-  //   ) => normalizeText(a.range.toString()) === normalizeText(a.text));
-  return { restored: restoredAnnotations, recovered: recoveredAnnotations };
+
+  return { valid, recoverable, unrecoverable };
 }
 
 async function contentSet<M, S>(

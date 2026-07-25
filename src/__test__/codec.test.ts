@@ -58,16 +58,12 @@ describe('createCodec', () => {
         createdAt: '2024-01-01T00:00:00.000Z',
         metadata: 'HELLO',
         range: {
-          startContainer: {
-            xpath: '/html[1]/body[1]/div[1]/p[1]/text()[1]',
-          },
+          startContainerXPath: '/html[1]/body[1]/div[1]/p[1]/text()[1]',
           startOffset: 0,
-          endContainer: {
-            xpath: '/html[1]/body[1]/div[1]/p[1]/text()[1]',
-          },
+          endContainerXPath: '/html[1]/body[1]/div[1]/p[1]/text()[1]',
           endOffset: 5,
         },
-        scrollElement: { xpath: '/html[1]/body[1]/div[1]/p[1]' },
+        scrollElement: '/html[1]/body[1]/div[1]/p[1]',
       });
     });
   });
@@ -83,12 +79,12 @@ describe('createCodec', () => {
         annotationUrl: 'https://example.com/page#anno=aaa',
         createdAt: '2024-01-01T00:00:00.000Z',
         range: {
-          startContainer: { xpath: '/html[1]/body[1]/p[1]/text()[1]' },
+          startContainerXPath: '/html[1]/body[1]/p[1]/text()[1]',
           startOffset: 0,
-          endContainer: { xpath: '/html[1]/body[1]/p[1]/text()[1]' },
+          endContainerXPath: '/html[1]/body[1]/p[1]/text()[1]',
           endOffset: 5,
         },
-        scrollElement: { xpath: '/html[1]/body[1]/p[1]' },
+        scrollElement: '/html[1]/body[1]/p[1]',
         metadata: 'HELLO',
       };
 
@@ -128,7 +124,7 @@ describe('createCodec', () => {
       it('startContainer xpath is invalid', () => {
         const annotation = makeAnnotation();
         const stored = codec.encode(annotation);
-        stored.range.startContainer.xpath = '/html[1]/body[1]/nonexistent[1]';
+        stored.range.startContainerXPath = '/html[1]/body[1]/nonexistent[1]';
 
         expect(codec.decodeDom(stored)).toBeUndefined();
       });
@@ -136,7 +132,7 @@ describe('createCodec', () => {
       it('endContainer xpath is invalid', () => {
         const annotation = makeAnnotation();
         const stored = codec.encode(annotation);
-        stored.range.endContainer.xpath = '/html[1]/body[1]/nonexistent[1]';
+        stored.range.endContainerXPath = '/html[1]/body[1]/nonexistent[1]';
 
         expect(codec.decodeDom(stored)).toBeUndefined();
       });
@@ -144,7 +140,7 @@ describe('createCodec', () => {
       it('scrollElement xpath is invalid', () => {
         const annotation = makeAnnotation();
         const stored = codec.encode(annotation);
-        stored.scrollElement.xpath = '/html[1]/body[1]/nonexistent[1]';
+        stored.scrollElement = '/html[1]/body[1]/nonexistent[1]';
 
         expect(codec.decodeDom(stored)).toBeUndefined();
       });

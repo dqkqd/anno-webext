@@ -68,34 +68,34 @@ it.each([
   document.body.innerHTML = html;
   const target = getNode();
   const stored = getNodeXPath(target);
-  expect(typeof stored.xpath).toBe('string');
+  expect(typeof stored).toBe('string');
   expect(getNodeByXPath(stored)).toBe(target);
 });
 
 describe('edge cases', () => {
   it('document node -> empty xpath', () => {
-    expect(getNodeXPath(document)).toEqual({ xpath: '' });
+    expect(getNodeXPath(document)).toBe('');
   });
 
   it('comment node -> returns parent xpath', () => {
     document.body.innerHTML = '<div><!-- comment --></div>';
     const comment = document.querySelector('div')!.childNodes[0];
     const stored = getNodeXPath(comment);
-    expect(typeof stored.xpath).toBe('string');
+    expect(typeof stored).toBe('string');
     expect(getNodeByXPath(stored)).toBe(comment.parentNode);
   });
 
   it('orphan element -> empty xpath', () => {
     const orphan = document.createElement('div');
-    expect(getNodeXPath(orphan)).toEqual({ xpath: '' });
+    expect(getNodeXPath(orphan)).toBe('');
   });
 
   it('getNodeByXPath: empty xpath throws', () => {
-    expect(() => getNodeByXPath({ xpath: '' })).toThrow();
+    expect(() => getNodeByXPath('')).toThrow();
   });
 
   it('getNodeByXPath: non-existent xpath -> null', () => {
     document.body.innerHTML = '<div></div>';
-    expect(getNodeByXPath({ xpath: '/html[1]/body[1]/span[1]' })).toBeNull();
+    expect(getNodeByXPath('/html[1]/body[1]/span[1]')).toBeNull();
   });
 });

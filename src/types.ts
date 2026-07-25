@@ -1,17 +1,14 @@
+// TODO: this isn't needed
 export type UUID = `${string}-${string}-${string}-${string}-${string}`;
 
 export type Annotations<Meta> = {
   [normalizedUrl: string]: Annotation<Meta>[];
 };
 
-export type StoredNode = {
-  xpath: string;
-};
-
 export type StoredRange = {
-  startContainer: StoredNode;
+  startContainerXPath: string;
   startOffset: number;
-  endContainer: StoredNode;
+  endContainerXPath: string;
   endOffset: number;
 };
 
@@ -82,7 +79,7 @@ export interface DomAnnotation<M> extends Annotation<M> {
 export interface StoredAnnotation<S> extends IAnnotation<S> {
   createdAt: string;
   range: StoredRange;
-  scrollElement: StoredNode;
+  scrollElement: string;
 }
 
 export type AnnoOptions<Memory, Storable> = {
@@ -101,7 +98,9 @@ export type DomAnnotationQueryOptions = {
 
 export type AnnoContent<M> = {
   annotate: () => Promise<DomAnnotation<M> | undefined>;
-  restore: () => Promise<DomAnnotation<M>[]>;
+  restore: () => Promise<
+    { valid: DomAnnotation<M>[]; invalid: Annotation<M>[] }
+  >;
   query: (options: DomAnnotationQueryOptions) => DomAnnotation<M>[];
 };
 
@@ -118,11 +117,15 @@ export type Anno<M> = {
   popup: AnnoPopup<M>;
 };
 
+export type AnnoStoreContentGet<M> = {
+  valid: DomAnnotation<M>[];
+  recoverable: DomAnnotation<M>[];
+  unrecoverable: Annotation<M>[];
+};
+
 export type AnnoStore<M> = {
   content: {
-    get: () => Promise<
-      { restored: DomAnnotation<M>[]; recovered: DomAnnotation<M>[] }
-    >;
+    get: () => Promise<AnnoStoreContentGet<M>>;
     set: (annotation: DomAnnotation<M>) => Promise<void>;
   };
   popup: {

@@ -10,6 +10,7 @@ import type {
   AnnoContent,
   AnnoOptions,
   AnnoStore,
+  Annotation,
   DomAnnotation,
 } from './types';
 import {
@@ -31,7 +32,7 @@ export function createAnno<M, S>(options: AnnoOptions<M, S>): Anno<M> {
       await store.content.set(annotation);
       return annotation;
     },
-    restore: async (): Promise<DomAnnotation<M>[]> => {
+    restore: async () => {
       return await restoreAnnotations(store, highlightRegistry);
     },
     query: rtree.query,
@@ -74,23 +75,28 @@ function annotate<M>(
 async function restoreAnnotations<M>(
   store: AnnoStore<M>,
   highlightRegistry: AnnoHighlightRegistry,
-): Promise<DomAnnotation<M>[]> {
+): Promise<{
+  valid: DomAnnotation<M>[];
+  invalid: Annotation<M>[];
+}> {
   // clear remaining inmemory annotations
   highlightRegistry.clear();
   rtree.clear();
 
-  const { restored, recovered } = await store.content.get();
-  for (const annotation of recovered) {
+  const { valid, recoverable, unrecoverable } = await store.content.get();
+  // recover the recoverable
+  for (const annotation of recoverable) {
     await store.content.set(annotation);
   }
-  const annotations = [...restored, ...recovered];
+  valid.push(...recoverable);
 
-  for (const annotation of annotations) {
+  for (const annotation of valid) {
     highlightRegistry.set(annotation);
     rtree.record(annotation);
   }
-  scrollToAnnotation(annotations);
-  return annotations;
+  scrollToAnnotation(valid);
+
+  return { valid, invalid: unrecoverable };
 }
 
 function scrollToAnnotation<M>(

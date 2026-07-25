@@ -1,12 +1,14 @@
 import { beforeAll, beforeEach, describe, expect, it } from 'vitest';
+import { createAnnotationFromSelection } from '../anno';
+import { getRangeByText } from '../finder';
 import { createStore } from '../store';
-import type { UUID } from '../types';
+import type { DomAnnotation, UUID } from '../types';
 import {
   annoOptionsTest,
   annotateText,
   resetStore,
   setupStorageMock,
-  type StoreTestMeta,
+  type TestMeta,
 } from './utils';
 
 beforeAll(() => setupStorageMock());
@@ -20,13 +22,21 @@ describe('content', () => {
     await store.content.set(a1);
     await store.content.set(a2);
     const results = await store.content.get();
-    expect(results).toStrictEqual([a1, a2]);
+    expect(results).toStrictEqual({
+      valid: [a1, a2],
+      recoverable: [],
+      unrecoverable: [],
+    });
   });
 
   it('returns empty array when nothing stored for current URL', async () => {
     const store = createStore(annoOptionsTest);
     const results = await store.content.get();
-    expect(results).toEqual([]);
+    expect(results).toStrictEqual({
+      valid: [],
+      recoverable: [],
+      unrecoverable: [],
+    });
   });
 
   describe('filter out', () => {
@@ -34,19 +44,52 @@ describe('content', () => {
       const store = createStore(annoOptionsTest);
       const annotation = annotateText('hello world');
       await store.content.set(annotation);
-      expect(await store.content.get()).toHaveLength(1);
+
       document.body.innerHTML = '';
-      expect(await store.content.get()).toHaveLength(0);
+      const results = await store.content.get();
+      expect(results).toStrictEqual({
+        valid: [],
+        recoverable: [],
+        unrecoverable: [
+          {
+            ...annotation,
+            range: {
+              endContainerXPath: '/html[1]/body[1]/div[1]/text()[1]',
+              endOffset: 11,
+              startContainerXPath: '/html[1]/body[1]/div[1]/text()[1]',
+              startOffset: 0,
+            },
+            scrollElement: '/html[1]/body[1]/div[1]',
+          },
+        ],
+      });
     });
 
     it('annotations whose text does not match range', async () => {
       const store = createStore(annoOptionsTest);
       const annotation = annotateText('hello world');
       await store.content.set(annotation);
-      expect(await store.content.get()).toHaveLength(1);
+      expect(await store.content.get()).toStrictEqual({
+        valid: [annotation],
+        recoverable: [],
+        unrecoverable: [],
+      });
       annotation.scrollElement.firstChild!.textContent = 'changed text';
       const results = await store.content.get();
-      expect(results).toEqual([]);
+      expect(results).toStrictEqual({
+        valid: [],
+        recoverable: [],
+        unrecoverable: [{
+          ...annotation,
+          range: {
+            startContainerXPath: '/html[1]/body[1]/div[1]/text()[1]',
+            startOffset: 0,
+            endContainerXPath: '/html[1]/body[1]/div[1]/text()[1]',
+            endOffset: 11,
+          },
+          scrollElement: '/html[1]/body[1]/div[1]',
+        }],
+      });
     });
 
     it('does not return annotations from other URLs', async () => {
@@ -57,7 +100,11 @@ describe('content', () => {
       a2.normalizedUrl = 'https://other.com/page';
       await store.content.set(a2);
       const results = await store.content.get();
-      expect(results).toStrictEqual([a1]);
+      expect(results).toStrictEqual({
+        valid: [a1],
+        recoverable: [],
+        unrecoverable: [],
+      });
     });
   });
 
@@ -107,7 +154,7 @@ describe('popup', () => {
     const annotation = annotateText('hello world');
     await store.content.set(annotation);
 
-    function updateFn(m: StoreTestMeta) {
+    function updateFn(m: TestMeta) {
       return { note: m.note + ' updated', score: m.score + 1 };
     }
 
@@ -126,5 +173,29 @@ describe('popup', () => {
     await expect(
       store.popup.updateMetadata(fakeId, (m) => m),
     ).rejects.toThrow(fakeId);
+  });
+});
+
+function annotate(html: string, search: string): DomAnnotation<TestMeta> {
+  document.body.innerHTML = html;
+  const range = getRangeByText(document.body, search)!;
+  const selection = window.getSelection()!;
+  selection.removeAllRanges();
+  selection.addRange(range);
+  return createAnnotationFromSelection(
+    selection,
+    annoOptionsTest.metadata.init,
+  )!;
+}
+
+it('annotates inline HTML', async () => {
+  const store = createStore(annoOptionsTest);
+  const annotation = annotate('<p>hello world</p>', 'hello world');
+  await store.content.set(annotation);
+  const results = await store.content.get();
+  expect(results).toStrictEqual({
+    valid: [annotation],
+    recoverable: [],
+    unrecoverable: [],
   });
 });
