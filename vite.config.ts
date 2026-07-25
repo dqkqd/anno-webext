@@ -1,5 +1,4 @@
 import { resolve } from 'node:path';
-import dts from 'unplugin-dts/vite';
 import { defineConfig } from 'vite';
 
 export default defineConfig({
@@ -12,12 +11,4 @@ export default defineConfig({
     },
     emptyOutDir: true,
   },
-  plugins: [
-    dts({
-      entryRoot: resolve(import.meta.dirname, 'src'),
-      include: ['src/**/*.ts'],
-      exclude: ['src/__test__/**'],
-      bundleTypes: true,
-    }),
-  ],
 });
