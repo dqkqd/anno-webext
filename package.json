@@ -20,7 +20,7 @@
   "type": "module",
   "scripts": {
     "build": "vite build && dts-bundle-generator --config dts-bundle-generator.config.json",
-    "build:debug": "vite build --minify=false --sourcemap=inline",
+    "build:debug": "vite build --minify=false --sourcemap=inline && dts-bundle-generator --config dts-bundle-generator.config.json",
     "build:e2e": "npm run build && vite build -c vite.config.e2e.ts",
     "build:e2e:debug": "npm run build:debug && vite build -c vite.config.e2e.ts --minify=false --sourcemap=inline",
     "lint": "npm run build && eslint .",
