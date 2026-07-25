@@ -120,7 +120,9 @@ export type Anno<M> = {
 
 export type AnnoStore<M> = {
   content: {
-    get: () => Promise<DomAnnotation<M>[]>;
+    get: () => Promise<
+      { restored: DomAnnotation<M>[]; recovered: DomAnnotation<M>[] }
+    >;
     set: (annotation: DomAnnotation<M>) => Promise<void>;
   };
   popup: {

@@ -1,9 +1,10 @@
+import { normalizeText } from './finder';
 import {
   type AnnoHighlightRegistry,
   createHighlightRegistry,
 } from './highlight';
 import { rtree } from './rtree';
-import { createStore, normalizeText } from './store';
+import { createStore } from './store';
 import type {
   Anno,
   AnnoContent,
@@ -78,7 +79,12 @@ async function restoreAnnotations<M>(
   highlightRegistry.clear();
   rtree.clear();
 
-  const annotations = await store.content.get();
+  const { restored, recovered } = await store.content.get();
+  for (const annotation of recovered) {
+    await store.content.set(annotation);
+  }
+  const annotations = [...restored, ...recovered];
+
   for (const annotation of annotations) {
     highlightRegistry.set(annotation);
     rtree.record(annotation);

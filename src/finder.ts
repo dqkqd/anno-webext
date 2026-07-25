@@ -3,8 +3,6 @@
  * The idea is based in https://github.com/obsidianmd/obsidian-clipper/blob/main/src/utils/highlighter-overlays.ts
  */
 
-import { normalizeText } from './store';
-
 interface TextNodeSegment {
   node: Text;
   // the actual locations in the text itself
@@ -161,4 +159,9 @@ export function getRangeByText(node: Node, text: string): Range | undefined {
   // the returned .offset gives the actual offset, so we need to add 1 here
   range.setEnd(endRange.node, endRange.offset + 1);
   return range;
+}
+
+// TODO: this should live some where else?
+export function normalizeText(text: string): string {
+  return text.replace(/\s+/g, ' ').trim();
 }
