@@ -72,7 +72,7 @@ async function contentGet<M, S>(
       // valid annotation!
       restoredAnnotations.push(annotation);
     } else {
-      // invalid annotaiton! this is due to xpath stale
+      // invalid annotation! this is due to xpath stale
       const range = getRangeByText(document.body, stored.text);
       if (range !== undefined) {
         const scrollElement =

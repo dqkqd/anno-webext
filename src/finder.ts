@@ -130,7 +130,7 @@ function domPositionForNormalizedOffset(
     start++;
   }
 
-  // the current postion might be space, skip that
+  // the current position might be space, skip that
   while (start < seg.end && /\s/.test(index.text[start])) {
     start++;
   }
