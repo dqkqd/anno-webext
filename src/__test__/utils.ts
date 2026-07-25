@@ -1,5 +1,6 @@
 import { vi } from 'vitest';
 import { createAnnotationFromSelection } from '../anno';
+import { getRangeByText } from '../finder';
 import type { StoredAnnotations } from '../store';
 import type { AnnoOptions, DomAnnotation } from '../types';
 
@@ -13,29 +14,13 @@ export const annoOptionsTest: AnnoOptions<TestMeta, TestMetaStorable> = {
   },
 };
 
-let selectCounter = 0;
-
-export function selectText(text: string): Selection {
-  // TODO: this seem is too difficult to understand which text is stelected
-  const id = `st${selectCounter++}`;
-  document.body.insertAdjacentHTML(
-    'beforeend',
-    `<div id="${id}">${text}</div>`,
-  );
-  const textNode = document.querySelector(`#${id}`)!.firstChild! as Text;
-  const range = document.createRange();
-  range.setStart(textNode, 0);
-  range.setEnd(textNode, text.length);
-
+export function annotate(text: string): DomAnnotation<TestMeta> {
+  const range = getRangeByText(document.body, text)!;
   const selection = window.getSelection()!;
   selection.removeAllRanges();
   selection.addRange(range);
-  return selection;
-}
-
-export function annotateText(text: string): DomAnnotation<TestMeta> {
   return createAnnotationFromSelection(
-    selectText(text),
+    selection,
     annoOptionsTest.metadata.init,
   )!;
 }
