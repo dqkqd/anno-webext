@@ -39,10 +39,6 @@ function makeAnnotation(): DomAnnotation<string> {
 describe('createCodec', () => {
   const codec = createCodec(options);
 
-  beforeEach(() => {
-    document.body.innerHTML = '';
-  });
-
   describe('encode', () => {
     it('converts DomAnnotation to StoredAnnotation', () => {
       const annotation = makeAnnotation();

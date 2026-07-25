@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it } from 'vitest';
+import { describe, expect, it } from 'vitest';
 import { getNodeByXPath, getNodeXPath } from '../location';
 
 function getNthText(parent: Node, index: number): Text {
@@ -7,10 +7,6 @@ function getNthText(parent: Node, index: number): Text {
   );
   return texts[index] as Text;
 }
-
-beforeEach(() => {
-  document.body.innerHTML = '';
-});
 
 it.each([
   {

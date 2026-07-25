@@ -50,5 +50,4 @@ export function setupStorageMock() {
 
 export function resetStore() {
   stubStorage = {};
-  document.body.innerHTML = '';
 }
