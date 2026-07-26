@@ -1,7 +1,5 @@
-import { vi } from 'vitest';
 import { createAnnotationFromSelection } from '../anno';
 import { getRangeByText } from '../finder';
-import type { StoredAnnotations } from '../store';
 import type { RenderableAnnotation, ResolveAnnoOptions } from '../types';
 
 export type TestMeta = { note: string; score: number };
@@ -24,31 +22,4 @@ export function annotate(text: string): RenderableAnnotation<TestMeta> {
     selection,
     annoOptionsTest.metadata.init,
   )!;
-}
-
-let stubStorage: StoredAnnotations<TestMetaStorable> = {};
-
-export function setupStorageMock() {
-  vi.stubGlobal('chrome', {
-    storage: {
-      local: {
-        get: vi.fn(() => Promise.resolve({ annotations: stubStorage })),
-        set: vi.fn(
-          (
-            { annotations }: {
-              annotations: StoredAnnotations<TestMetaStorable>;
-            },
-          ) => {
-            stubStorage = annotations;
-            return Promise.resolve();
-          },
-        ),
-      },
-    },
-    runtime: { getManifest: () => ({ version: '1.0.0' }) },
-  });
-}
-
-export function resetStore() {
-  stubStorage = {};
 }
