@@ -10,10 +10,10 @@
     "checkJs": true,
     "moduleDetection": "force",
     "declaration": true,
+    "strict": true,
   },
   "include": [
     "src",
-    "examples",
     "tests",
     "vite.config.ts",
     "vite.config.e2e.ts",
