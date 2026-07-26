@@ -9,14 +9,25 @@ Published as a single ESM bundle `anno-webext`.
 ```text
 src/                    # library source, built to dist/
   index.ts              # public entry point — re-exports createAnno() + types
-  anno.ts               # core orchestration: annotate, restore, query, store
+  anno.ts               # core orchestration: annotate, restore, query
   highlight.ts          # CSS Custom Highlight API wrapper
   location.ts           # XPath-based DOM node anchoring
   codec.ts              # encodes/decodes a Range to/from storage
   url.ts                # canonicalizes URLs used as storage keys
   rtree.ts              # RBush spatial index for point/hover queries
-  store.ts              # chrome.storage.local persistence
+  store.ts              # chrome.storage.local persistence + popup API
+  finder.ts             # text normalization + DOM range search for recovery
+  options.ts            # options types and defaults
+  utils.ts              # shared utilities (normalizeText, getScrollElement)
   types.ts, global.d.ts # shared types, ambient declarations
+  __test__/             # vitest unit tests (jsdom)
+    setup.ts            # test environment setup
+    utils.ts            # shared helpers (annotate, store mock)
+    codec.test.ts       # encode/decode roundtrip
+    finder.test.ts      # text search + DOM range mapping
+    location.test.ts    # XPath roundtrip
+    store.test.ts       # content get/set + popup metadata
+    url.test.ts         # URL normalization
 
 tests/                  # Playwright end-to-end specs
   fixtures.ts           # browser/extension launch fixtures
@@ -41,7 +52,7 @@ vite.config.e2e.ts      # test extension build (multi-entry)
 eslint.config.ts        # ESLint flat config
 dprint.json             # dprint formatter config
 flake.nix, .envrc       # Nix devShell (node, browsers, playwright deps)
-.github/workflows/      # CI: anno.yml (unit + e2e + format + lint), typos.yml (spell check)
+.github/workflows/      # CI: anno.yml (unit, e2e, format, lint, typos)
 ```
 
 ## Setup
