@@ -33,7 +33,7 @@ function buildTextIndex(root: Node): TextIndex {
   let text = '';
   let normalizedText = '';
   const segments: TextNodeSegment[] = [];
-  for (const [i, node] of nodes.entries()) {
+  for (const node of nodes) {
     const start = text.length;
     const normStart = normalizedText.length;
 
@@ -57,9 +57,7 @@ function buildTextIndex(root: Node): TextIndex {
       normalizedText += normalizedTextContent;
 
       // Spaces at the end: only include the space if it is not the last node
-      if (
-        i !== nodes.length - 1 && /\s/.test(textContent[textContent.length - 1])
-      ) {
+      if (/\s/.test(textContent[textContent.length - 1])) {
         normalizedText += ' ';
       }
     }
@@ -80,6 +78,7 @@ function buildTextIndex(root: Node): TextIndex {
       if (segments[i].normStart !== segments[i].normEnd) {
         segments[i].normEnd -= 1;
         normalizedText = normalizedText.slice(0, -1);
+        break;
       }
     }
   }
