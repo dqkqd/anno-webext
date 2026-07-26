@@ -10,7 +10,7 @@ export function resolveOptions<M, S>(
       encode: () => ({} as S),
       decode: () => ({} as M),
     };
-  const cssClass = options?.cssClass ?? 'anno--styles';
+  const cssRegistry = options?.cssRegistry ?? 'anno--styles';
 
-  return { metadata, cssClass };
+  return { metadata, cssRegistry };
 }

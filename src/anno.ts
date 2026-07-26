@@ -25,7 +25,9 @@ export function createAnno<M, S>(options: AnnoOptions<M, S>): Anno<M>;
 export function createAnno<M, S>(options?: AnnoOptions<M, S>): Anno<M> {
   const resolvedOptions = resolveOptions(options);
   const store = createStore(resolvedOptions);
-  const highlightRegistry = createHighlightRegistry(resolvedOptions.cssClass);
+  const highlightRegistry = createHighlightRegistry(
+    resolvedOptions.cssRegistry,
+  );
 
   const content: AnnoContent<M> = {
     annotate: async (): Promise<RenderableAnnotation<M> | undefined> => {

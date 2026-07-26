@@ -1,0 +1,5 @@
+/* eslint-disable-next-line css/use-baseline */
+::highlight(custom-highlight) {
+  background-color: yellow;
+  color: black;
+}
