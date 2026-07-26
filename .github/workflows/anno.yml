@@ -53,6 +53,8 @@ jobs:
       - *checkout
       - *setup-node
       - run: npm ci
+      - run: npm ci
+        working-directory: examples/basic
       - run: npm run typecheck
 
   format:
