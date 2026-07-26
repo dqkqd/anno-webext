@@ -45,6 +45,18 @@ jobs:
       - run: npx playwright install --with-deps ${{ matrix.browser }}
       - run: npm run test:e2e -- --project=${{ matrix.browser }}
 
+  typecheck:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - *checkout
+      - *setup-node
+      - run: npm ci
+      - run: npm ci
+        working-directory: examples/basic
+      - run: npm run typecheck
+
   format:
     runs-on: ubuntu-latest
     permissions:

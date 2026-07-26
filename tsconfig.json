@@ -10,6 +10,7 @@
     "checkJs": true,
     "moduleDetection": "force",
     "declaration": true,
+    "strict": true,
   },
   "include": [
     "src",
@@ -21,5 +22,5 @@
     "eslint.config.ts",
     "playwright.config.ts"
   ],
-  "exclude": ["dist", "tests/dist"]
+  "exclude": ["dist", "tests/dist", "examples/**/dist"]
 }
