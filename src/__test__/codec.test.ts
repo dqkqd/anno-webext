@@ -19,7 +19,7 @@ describe('createCodec', () => {
         originalUrl: 'http://localhost:3000/',
         normalizedUrl: 'http://localhost:3000/',
         annotationUrl: 'http://localhost:3000/#anno-record-id=00000000-0000-0000-0000-000000000001',
-        createdAt: annotation.createdAt.toISOString(),
+        createdAt: '2026-07-26T00:00:00.000Z',
         metadata: { note: 'init', score: '000' },
         range: {
           startContainerXPath: '/html[1]/body[1]/p[1]/text()[1]',
@@ -40,12 +40,12 @@ describe('createCodec', () => {
 
       expect(decoded).toStrictEqual({
         id: '00000000-0000-0000-0000-000000000001',
-        version: stored.version,
-        text: stored.text,
+        version: '1.0.0',
+        text: 'hello',
         originalUrl: 'http://localhost:3000/',
         normalizedUrl: 'http://localhost:3000/',
         annotationUrl: 'http://localhost:3000/#anno-record-id=00000000-0000-0000-0000-000000000001',
-        createdAt: new Date(stored.createdAt),
+        createdAt: new Date('2026-07-26T00:00:00.000Z'),
         metadata: { note: 'init', score: 0 },
       });
     });
@@ -68,7 +68,7 @@ describe('createCodec', () => {
         score: 0,
       });
       expect(decoded.annotation.createdAt).toStrictEqual(
-        new Date(stored.createdAt),
+        new Date('2026-07-26T00:00:00.000Z'),
       );
     });
 

@@ -47,12 +47,12 @@ describe('content', () => {
         valid: [],
         recoverable: [{
           id: '00000000-0000-0000-0000-000000000001',
-          version: annotation.version,
+          version: '1.0.0',
           text: 'hello world',
           originalUrl: 'http://localhost:3000/',
           normalizedUrl: 'http://localhost:3000/',
           annotationUrl: 'http://localhost:3000/#anno-record-id=00000000-0000-0000-0000-000000000001',
-          createdAt: annotation.createdAt,
+          createdAt: new Date('2026-07-26T00:00:00.000Z'),
           range: expect.any(Range) as Range,
           metadata: { note: 'init', score: 0 },
         }],
@@ -73,13 +73,13 @@ describe('content', () => {
         unrecoverable: [
           {
             id: '00000000-0000-0000-0000-000000000001',
-            version: annotation.version,
-            text: annotation.text,
+            version: '1.0.0',
+            text: 'hello world',
             originalUrl: 'http://localhost:3000/',
             normalizedUrl: 'http://localhost:3000/',
             annotationUrl: 'http://localhost:3000/#anno-record-id=00000000-0000-0000-0000-000000000001',
-            createdAt: annotation.createdAt,
-            metadata: annotation.metadata,
+            createdAt: new Date('2026-07-26T00:00:00.000Z'),
+            metadata: { note: 'init', score: 0 },
           },
         ],
       });
@@ -104,13 +104,13 @@ describe('content', () => {
         recoverable: [],
         unrecoverable: [{
           id: '00000000-0000-0000-0000-000000000001',
-          version: annotation.version,
-          text: annotation.text,
+          version: '1.0.0',
+          text: 'hello world',
           originalUrl: 'http://localhost:3000/',
           normalizedUrl: 'http://localhost:3000/',
           annotationUrl: 'http://localhost:3000/#anno-record-id=00000000-0000-0000-0000-000000000001',
-          createdAt: annotation.createdAt,
-          metadata: annotation.metadata,
+          createdAt: new Date('2026-07-26T00:00:00.000Z'),
+          metadata: { note: 'init', score: 0 },
         }],
       });
     });
@@ -197,7 +197,7 @@ describe('popup', () => {
     const stored = results[location.href][0];
 
     expect(updated).toStrictEqual(stored);
-    expect(updated.metadata).toStrictEqual(updateFn(annotation.metadata));
+    expect(updated.metadata).toStrictEqual({ note: 'init updated', score: 1 });
   });
 
   it('updates metadata throws when annotation ID not found', async () => {
