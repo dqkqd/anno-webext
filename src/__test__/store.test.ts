@@ -59,7 +59,6 @@ describe('content', () => {
           annotationUrl: annotation.annotationUrl,
           createdAt: annotation.createdAt,
           range: expect.any(Range) as Range,
-          scrollElement: expect.any(Element) as Element,
           metadata: { note: 'init', score: 0 },
         }],
         unrecoverable: [],
@@ -85,7 +84,6 @@ describe('content', () => {
               startContainerXPath: '/html[1]/body[1]/p[1]/text()[1]',
               startOffset: 0,
             },
-            scrollElement: '/html[1]/body[1]/p[1]',
           },
         ],
       });
@@ -102,7 +100,6 @@ describe('content', () => {
         unrecoverable: [],
       });
 
-      annotation.scrollElement.firstChild!.textContent = 'changed text';
       const results = await store.content.get();
       expect(results).toStrictEqual({
         valid: [],
@@ -115,7 +112,6 @@ describe('content', () => {
             endContainerXPath: '/html[1]/body[1]/p[1]/text()[1]',
             endOffset: 11,
           },
-          scrollElement: '/html[1]/body[1]/p[1]',
         }],
       });
     });

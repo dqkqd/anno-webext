@@ -90,14 +90,9 @@ async function contentGet<M, S>(
       continue;
     }
 
-    // TODO: scrollElement is duplicated here
-    const scrollElement = range.startContainer.nodeType === Node.ELEMENT_NODE
-      ? (range.startContainer as Element)
-      : range.startContainer.parentElement!;
     recoverable.push({
       ...newAnnotation,
       range,
-      scrollElement,
       metadata: codec.metadata.decode(stored.metadata),
     });
   }

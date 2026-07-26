@@ -18,6 +18,7 @@ import {
   getAnnotationIdFromUrl,
   normalizeUrl,
 } from './url';
+import { getScrollElement } from './utils';
 
 export function createAnno<M, S>(options: AnnoOptions<M, S>): Anno<M> {
   const store = createStore(options);
@@ -109,7 +110,8 @@ function scrollToAnnotation<M>(
 
   const annotation = annotations.find((a) => a.id === annotationId);
   if (annotation) {
-    scrollToElement(annotation.scrollElement);
+    const scrollElement = getScrollElement(annotation.range);
+    scrollToElement(scrollElement);
   }
 }
 
@@ -135,13 +137,6 @@ export function createAnnotationFromSelection<M>(
   const normalizedUrl = normalizeUrl(originalUrl);
   const annotationUrl = createAnnotationUrl(normalizedUrl, id);
 
-  // Add scroll element to the annotation.
-  // This must be an `Element`, which means if we are selecting a text node,
-  // then this should be its parent.
-  const scrollElement = range.startContainer.nodeType === Node.ELEMENT_NODE
-    ? (range.startContainer as Element)
-    : range.startContainer.parentElement!;
-
   return {
     id,
     version: STORE_FORMAT_VERSION,
@@ -151,7 +146,6 @@ export function createAnnotationFromSelection<M>(
     annotationUrl,
     createdAt: new Date(),
     range,
-    scrollElement,
     metadata: createMetadata(),
   };
 }

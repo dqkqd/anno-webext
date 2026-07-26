@@ -26,7 +26,6 @@ describe('createCodec', () => {
           endContainerXPath: '/html[1]/body[1]/p[1]/text()[1]',
           endOffset: 5,
         },
-        scrollElement: '/html[1]/body[1]/p[1]',
       });
     });
   });
@@ -55,7 +54,6 @@ describe('createCodec', () => {
 
       expect(restored).toBeDefined();
       expect(restored!.range.toString()).toBe('hello');
-      expect(restored!.scrollElement).toBe(annotation.scrollElement);
       expect(restored!.metadata).toStrictEqual({ note: 'init', score: 0 });
       expect(restored!.createdAt).toStrictEqual(
         new Date(stored.createdAt),
@@ -77,15 +75,6 @@ describe('createCodec', () => {
         const annotation = annotate('hello');
         const stored = codec.encode(annotation);
         stored.range.endContainerXPath = '/html[1]/body[1]/nonexistent[1]';
-
-        expect(codec.decode(stored)).toBeUndefined();
-      });
-
-      it('scrollElement xpath is invalid', () => {
-        document.body.innerHTML = '<p>hello world</p>';
-        const annotation = annotate('hello');
-        const stored = codec.encode(annotation);
-        stored.scrollElement = '/html[1]/body[1]/nonexistent[1]';
 
         expect(codec.decode(stored)).toBeUndefined();
       });

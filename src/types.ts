@@ -66,10 +66,6 @@ export interface RenderableAnnotation<M> extends Annotation<M> {
    * the actual range for the annotation (highlight) on the DOM
    */
   range: Range;
-  /*
-   * the closet element for the annotation
-   */
-  scrollElement: Element;
 }
 
 /**
@@ -78,7 +74,6 @@ export interface RenderableAnnotation<M> extends Annotation<M> {
 export interface StoredAnnotation<S> extends IAnnotation<S> {
   createdAt: string;
   range: StoredRange;
-  scrollElement: string;
 }
 
 export type AnnoOptions<Memory, Storable> = {

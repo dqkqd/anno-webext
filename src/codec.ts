@@ -22,7 +22,6 @@ export function createCodec<M, S>(options: AnnoOptions<M, S>): AnnoCodec<M, S> {
           endContainerXPath: getNodeXPath(annotation.range.endContainer),
           endOffset: annotation.range.endOffset,
         },
-        scrollElement: getNodeXPath(annotation.scrollElement),
         metadata: metadata.encode(annotation.metadata),
       };
     },
@@ -36,17 +35,10 @@ export function createCodec<M, S>(options: AnnoOptions<M, S>): AnnoCodec<M, S> {
       if (!range) {
         return;
       }
-      const scrollElement = getNodeByXPath(stored.scrollElement);
-      if (!scrollElement) {
-        return;
-      }
-
       return {
         ...stored,
         range,
         createdAt: new Date(stored.createdAt),
-        // scroll element (if exist) must be `Element`
-        scrollElement: scrollElement as Element,
         metadata: metadata.decode(stored.metadata),
       };
     },
