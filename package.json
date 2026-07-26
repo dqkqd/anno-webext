@@ -19,6 +19,7 @@
   ],
   "type": "module",
   "scripts": {
+    "prepare": "vite build && dts-bundle-generator --config dts-bundle-generator.config.json",
     "build": "vite build && dts-bundle-generator --config dts-bundle-generator.config.json",
     "build:debug": "vite build --minify=false --sourcemap=inline && dts-bundle-generator --config dts-bundle-generator.config.json",
     "build:e2e": "npm run build && vite build -c vite.config.e2e.ts",
