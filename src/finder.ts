@@ -32,8 +32,7 @@ function buildTextIndex(root: Node): TextIndex {
 
   let text = '';
   let normalizedText = '';
-  const segments: TextNodeSegment[] = [];
-  for (const node of nodes) {
+  const segments: TextNodeSegment[] = nodes.map((node) => {
     const start = text.length;
     const normStart = normalizedText.length;
 
@@ -62,14 +61,14 @@ function buildTextIndex(root: Node): TextIndex {
       }
     }
 
-    segments.push({
+    return {
       node,
       start,
       end: text.length,
       normStart,
       normEnd: normalizedText.length,
-    });
-  }
+    };
+  });
 
   // the last node can be empty, but one of the previous node appended a space
   // leaving the normalizedText contain trailing spaces
