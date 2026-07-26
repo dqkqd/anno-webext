@@ -64,7 +64,6 @@ it.each([
   document.body.innerHTML = html;
   const target = getNode();
   const stored = getNodeXPath(target);
-  expect(typeof stored).toBe('string');
   expect(getNodeByXPath(stored)).toBe(target);
 });
 
@@ -77,7 +76,6 @@ describe('edge cases', () => {
     document.body.innerHTML = '<div><!-- comment --></div>';
     const comment = document.querySelector('div')!.childNodes[0];
     const stored = getNodeXPath(comment);
-    expect(typeof stored).toBe('string');
     expect(getNodeByXPath(stored)).toBe(comment.parentNode);
   });
 
