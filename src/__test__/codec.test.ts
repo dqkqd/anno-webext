@@ -1,7 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { createCodec } from '../codec';
-import { RenderableAnnotation } from '../types';
-import { annoOptionsTest, annotate, TestMeta } from './utils';
+import { annoOptionsTest, annotate } from './utils';
 
 const codec = createCodec(annoOptionsTest);
 
@@ -12,22 +11,27 @@ describe('createCodec', () => {
       const annotation = annotate('hello');
       const stored = codec.encode(annotation);
 
-      expect(stored).toStrictEqual({
-        id: '00000000-0000-0000-0000-000000000001',
-        version: '1.0.0',
-        text: 'hello',
-        originalUrl: 'http://localhost:3000/',
-        normalizedUrl: 'http://localhost:3000/',
-        annotationUrl: 'http://localhost:3000/#anno-record-id=00000000-0000-0000-0000-000000000001',
-        createdAt: '2026-07-26T00:00:00.000Z',
-        metadata: { note: 'init', score: '000' },
-        range: {
-          startContainerXPath: '/html[1]/body[1]/p[1]/text()[1]',
-          startOffset: 0,
-          endContainerXPath: '/html[1]/body[1]/p[1]/text()[1]',
-          endOffset: 5,
-        },
-      });
+      expect(stored).toMatchInlineSnapshot(`
+        {
+          "annotationUrl": "http://localhost:3000/#anno-record-id=00000000-0000-0000-0000-000000000001",
+          "createdAt": "2026-07-26T00:00:00.000Z",
+          "id": "00000000-0000-0000-0000-000000000001",
+          "metadata": {
+            "note": "init",
+            "score": "000",
+          },
+          "normalizedUrl": "http://localhost:3000/",
+          "originalUrl": "http://localhost:3000/",
+          "range": {
+            "endContainerXPath": "/html[1]/body[1]/p[1]/text()[1]",
+            "endOffset": 5,
+            "startContainerXPath": "/html[1]/body[1]/p[1]/text()[1]",
+            "startOffset": 0,
+          },
+          "text": "hello",
+          "version": "1.0.0",
+        }
+      `);
     });
   });
 
@@ -38,16 +42,21 @@ describe('createCodec', () => {
       const stored = codec.encode(annotation);
       const decoded = codec.decodeNonRenderable(stored);
 
-      expect(decoded).toStrictEqual({
-        id: '00000000-0000-0000-0000-000000000001',
-        version: '1.0.0',
-        text: 'hello',
-        originalUrl: 'http://localhost:3000/',
-        normalizedUrl: 'http://localhost:3000/',
-        annotationUrl: 'http://localhost:3000/#anno-record-id=00000000-0000-0000-0000-000000000001',
-        createdAt: new Date('2026-07-26T00:00:00.000Z'),
-        metadata: { note: 'init', score: 0 },
-      });
+      expect(decoded).toMatchInlineSnapshot(`
+        {
+          "annotationUrl": "http://localhost:3000/#anno-record-id=00000000-0000-0000-0000-000000000001",
+          "createdAt": 2026-07-26T00:00:00.000Z,
+          "id": "00000000-0000-0000-0000-000000000001",
+          "metadata": {
+            "note": "init",
+            "score": 0,
+          },
+          "normalizedUrl": "http://localhost:3000/",
+          "originalUrl": "http://localhost:3000/",
+          "text": "hello",
+          "version": "1.0.0",
+        }
+      `);
     });
   });
 
@@ -58,18 +67,25 @@ describe('createCodec', () => {
       const stored = codec.encode(annotation);
       const decoded = codec.decode(stored);
 
-      expect(decoded.kind).toBe('valid');
-      const decodedAnnotation = decoded.annotation as RenderableAnnotation<
-        TestMeta
-      >;
-      expect(decodedAnnotation.range.toString()).toBe('hello');
-      expect(decodedAnnotation.metadata).toStrictEqual({
-        note: 'init',
-        score: 0,
-      });
-      expect(decoded.annotation.createdAt).toStrictEqual(
-        new Date('2026-07-26T00:00:00.000Z'),
-      );
+      expect(decoded).toMatchInlineSnapshot(`
+        {
+          "annotation": {
+            "annotationUrl": "http://localhost:3000/#anno-record-id=00000000-0000-0000-0000-000000000001",
+            "createdAt": 2026-07-26T00:00:00.000Z,
+            "id": "00000000-0000-0000-0000-000000000001",
+            "metadata": {
+              "note": "init",
+              "score": 0,
+            },
+            "normalizedUrl": "http://localhost:3000/",
+            "originalUrl": "http://localhost:3000/",
+            "range": Range {},
+            "text": "hello",
+            "version": "1.0.0",
+          },
+          "kind": "valid",
+        }
+      `);
     });
 
     it('returns recoverable when XPath is stale but text exists', () => {
@@ -79,7 +95,25 @@ describe('createCodec', () => {
       document.body.innerHTML = '<div>hello</div>';
       const decoded = codec.decode(stored);
 
-      expect(decoded.kind).toBe('recoverable');
+      expect(decoded).toMatchInlineSnapshot(`
+        {
+          "annotation": {
+            "annotationUrl": "http://localhost:3000/#anno-record-id=00000000-0000-0000-0000-000000000001",
+            "createdAt": 2026-07-26T00:00:00.000Z,
+            "id": "00000000-0000-0000-0000-000000000001",
+            "metadata": {
+              "note": "init",
+              "score": 0,
+            },
+            "normalizedUrl": "http://localhost:3000/",
+            "originalUrl": "http://localhost:3000/",
+            "range": Range {},
+            "text": "hello",
+            "version": "1.0.0",
+          },
+          "kind": "recoverable",
+        }
+      `);
     });
 
     it('returns unrecoverable when XPath is stale and text is gone', () => {
@@ -89,7 +123,24 @@ describe('createCodec', () => {
       document.body.innerHTML = '<div>goodbye</div>';
       const decoded = codec.decode(stored);
 
-      expect(decoded.kind).toBe('unrecoverable');
+      expect(decoded).toMatchInlineSnapshot(`
+        {
+          "annotation": {
+            "annotationUrl": "http://localhost:3000/#anno-record-id=00000000-0000-0000-0000-000000000001",
+            "createdAt": 2026-07-26T00:00:00.000Z,
+            "id": "00000000-0000-0000-0000-000000000001",
+            "metadata": {
+              "note": "init",
+              "score": 0,
+            },
+            "normalizedUrl": "http://localhost:3000/",
+            "originalUrl": "http://localhost:3000/",
+            "text": "hello",
+            "version": "1.0.0",
+          },
+          "kind": "unrecoverable",
+        }
+      `);
     });
 
     it('returns unrecoverable when text does not match and cannot be found', () => {
@@ -99,7 +150,24 @@ describe('createCodec', () => {
       document.body.querySelector('p')!.firstChild!.textContent = 'changed';
       const decoded = codec.decode(stored);
 
-      expect(decoded.kind).toBe('unrecoverable');
+      expect(decoded).toMatchInlineSnapshot(`
+        {
+          "annotation": {
+            "annotationUrl": "http://localhost:3000/#anno-record-id=00000000-0000-0000-0000-000000000001",
+            "createdAt": 2026-07-26T00:00:00.000Z,
+            "id": "00000000-0000-0000-0000-000000000001",
+            "metadata": {
+              "note": "init",
+              "score": 0,
+            },
+            "normalizedUrl": "http://localhost:3000/",
+            "originalUrl": "http://localhost:3000/",
+            "text": "hello",
+            "version": "1.0.0",
+          },
+          "kind": "unrecoverable",
+        }
+      `);
     });
 
     it('throws when offset exceeds node length', () => {

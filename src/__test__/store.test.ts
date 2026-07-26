@@ -1,10 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { createStore } from '../store';
-import {
-  annoOptionsTest,
-  annotate,
-  type TestMeta,
-} from './utils';
+import { annoOptionsTest, annotate, type TestMeta } from './utils';
 
 const store = createStore(annoOptionsTest);
 
@@ -18,20 +14,53 @@ describe('content', () => {
     await store.content.set(a2);
 
     const results = await store.content.get();
-    expect(results).toStrictEqual({
-      valid: [a1, a2],
-      recoverable: [],
-      unrecoverable: [],
-    });
+    expect(results).toMatchInlineSnapshot(`
+      {
+        "recoverable": [],
+        "unrecoverable": [],
+        "valid": [
+          {
+            "annotationUrl": "http://localhost:3000/#anno-record-id=00000000-0000-0000-0000-000000000001",
+            "createdAt": 2026-07-26T00:00:00.000Z,
+            "id": "00000000-0000-0000-0000-000000000001",
+            "metadata": {
+              "note": "init",
+              "score": 0,
+            },
+            "normalizedUrl": "http://localhost:3000/",
+            "originalUrl": "http://localhost:3000/",
+            "range": Range {},
+            "text": "hello world1",
+            "version": "1.0.0",
+          },
+          {
+            "annotationUrl": "http://localhost:3000/#anno-record-id=00000000-0000-0000-0000-000000000002",
+            "createdAt": 2026-07-26T00:00:00.000Z,
+            "id": "00000000-0000-0000-0000-000000000002",
+            "metadata": {
+              "note": "init",
+              "score": 0,
+            },
+            "normalizedUrl": "http://localhost:3000/",
+            "originalUrl": "http://localhost:3000/",
+            "range": Range {},
+            "text": "hello world2",
+            "version": "1.0.0",
+          },
+        ],
+      }
+    `);
   });
 
   it('returns empty array when nothing stored for current URL', async () => {
     const results = await store.content.get();
-    expect(results).toStrictEqual({
-      valid: [],
-      recoverable: [],
-      unrecoverable: [],
-    });
+    expect(results).toMatchInlineSnapshot(`
+      {
+        "recoverable": [],
+        "unrecoverable": [],
+        "valid": [],
+      }
+    `);
   });
 
   describe('filter out', () => {
@@ -43,21 +72,28 @@ describe('content', () => {
       document.body.innerHTML = '<div>hello world</div>';
       const results = await store.content.get();
 
-      expect(results).toStrictEqual({
-        valid: [],
-        recoverable: [{
-          id: '00000000-0000-0000-0000-000000000001',
-          version: '1.0.0',
-          text: 'hello world',
-          originalUrl: 'http://localhost:3000/',
-          normalizedUrl: 'http://localhost:3000/',
-          annotationUrl: 'http://localhost:3000/#anno-record-id=00000000-0000-0000-0000-000000000001',
-          createdAt: new Date('2026-07-26T00:00:00.000Z'),
-          range: expect.any(Range) as Range,
-          metadata: { note: 'init', score: 0 },
-        }],
-        unrecoverable: [],
-      });
+      expect(results).toMatchInlineSnapshot(`
+        {
+          "recoverable": [
+            {
+              "annotationUrl": "http://localhost:3000/#anno-record-id=00000000-0000-0000-0000-000000000001",
+              "createdAt": 2026-07-26T00:00:00.000Z,
+              "id": "00000000-0000-0000-0000-000000000001",
+              "metadata": {
+                "note": "init",
+                "score": 0,
+              },
+              "normalizedUrl": "http://localhost:3000/",
+              "originalUrl": "http://localhost:3000/",
+              "range": Range {},
+              "text": "hello world",
+              "version": "1.0.0",
+            },
+          ],
+          "unrecoverable": [],
+          "valid": [],
+        }
+      `);
     });
 
     it('annotations whose DOM nodes were removed', async () => {
@@ -67,22 +103,27 @@ describe('content', () => {
 
       document.body.innerHTML = '';
       const results = await store.content.get();
-      expect(results).toStrictEqual({
-        valid: [],
-        recoverable: [],
-        unrecoverable: [
-          {
-            id: '00000000-0000-0000-0000-000000000001',
-            version: '1.0.0',
-            text: 'hello world',
-            originalUrl: 'http://localhost:3000/',
-            normalizedUrl: 'http://localhost:3000/',
-            annotationUrl: 'http://localhost:3000/#anno-record-id=00000000-0000-0000-0000-000000000001',
-            createdAt: new Date('2026-07-26T00:00:00.000Z'),
-            metadata: { note: 'init', score: 0 },
-          },
-        ],
-      });
+      expect(results).toMatchInlineSnapshot(`
+        {
+          "recoverable": [],
+          "unrecoverable": [
+            {
+              "annotationUrl": "http://localhost:3000/#anno-record-id=00000000-0000-0000-0000-000000000001",
+              "createdAt": 2026-07-26T00:00:00.000Z,
+              "id": "00000000-0000-0000-0000-000000000001",
+              "metadata": {
+                "note": "init",
+                "score": 0,
+              },
+              "normalizedUrl": "http://localhost:3000/",
+              "originalUrl": "http://localhost:3000/",
+              "text": "hello world",
+              "version": "1.0.0",
+            },
+          ],
+          "valid": [],
+        }
+      `);
     });
 
     it('annotations whose text does not match range', async () => {
@@ -90,29 +131,53 @@ describe('content', () => {
       const annotation = annotate('hello world');
       await store.content.set(annotation);
 
-      expect(await store.content.get()).toStrictEqual({
-        valid: [annotation],
-        recoverable: [],
-        unrecoverable: [],
-      });
+      expect(await store.content.get()).toMatchInlineSnapshot(`
+        {
+          "recoverable": [],
+          "unrecoverable": [],
+          "valid": [
+            {
+              "annotationUrl": "http://localhost:3000/#anno-record-id=00000000-0000-0000-0000-000000000001",
+              "createdAt": 2026-07-26T00:00:00.000Z,
+              "id": "00000000-0000-0000-0000-000000000001",
+              "metadata": {
+                "note": "init",
+                "score": 0,
+              },
+              "normalizedUrl": "http://localhost:3000/",
+              "originalUrl": "http://localhost:3000/",
+              "range": Range {},
+              "text": "hello world",
+              "version": "1.0.0",
+            },
+          ],
+        }
+      `);
 
       (document.querySelector('p')!.firstChild as Text).textContent =
         'changed text';
       const results = await store.content.get();
-      expect(results).toStrictEqual({
-        valid: [],
-        recoverable: [],
-        unrecoverable: [{
-          id: '00000000-0000-0000-0000-000000000001',
-          version: '1.0.0',
-          text: 'hello world',
-          originalUrl: 'http://localhost:3000/',
-          normalizedUrl: 'http://localhost:3000/',
-          annotationUrl: 'http://localhost:3000/#anno-record-id=00000000-0000-0000-0000-000000000001',
-          createdAt: new Date('2026-07-26T00:00:00.000Z'),
-          metadata: { note: 'init', score: 0 },
-        }],
-      });
+      expect(results).toMatchInlineSnapshot(`
+        {
+          "recoverable": [],
+          "unrecoverable": [
+            {
+              "annotationUrl": "http://localhost:3000/#anno-record-id=00000000-0000-0000-0000-000000000001",
+              "createdAt": 2026-07-26T00:00:00.000Z,
+              "id": "00000000-0000-0000-0000-000000000001",
+              "metadata": {
+                "note": "init",
+                "score": 0,
+              },
+              "normalizedUrl": "http://localhost:3000/",
+              "originalUrl": "http://localhost:3000/",
+              "text": "hello world",
+              "version": "1.0.0",
+            },
+          ],
+          "valid": [],
+        }
+      `);
     });
 
     it('does not return annotations from other URLs', async () => {
@@ -126,11 +191,28 @@ describe('content', () => {
       await store.content.set(a2);
 
       const results = await store.content.get();
-      expect(results).toStrictEqual({
-        valid: [a1],
-        recoverable: [],
-        unrecoverable: [],
-      });
+      expect(results).toMatchInlineSnapshot(`
+        {
+          "recoverable": [],
+          "unrecoverable": [],
+          "valid": [
+            {
+              "annotationUrl": "http://localhost:3000/#anno-record-id=00000000-0000-0000-0000-000000000001",
+              "createdAt": 2026-07-26T00:00:00.000Z,
+              "id": "00000000-0000-0000-0000-000000000001",
+              "metadata": {
+                "note": "init",
+                "score": 0,
+              },
+              "normalizedUrl": "http://localhost:3000/",
+              "originalUrl": "http://localhost:3000/",
+              "range": Range {},
+              "text": "hello world",
+              "version": "1.0.0",
+            },
+          ],
+        }
+      `);
     });
   });
 
@@ -143,7 +225,28 @@ describe('content', () => {
     await store.content.set(annotation);
 
     const result = await store.content.get();
-    expect(result.valid[0].metadata).toStrictEqual({ note: 'new', score: 0 });
+    expect(result).toMatchInlineSnapshot(`
+      {
+        "recoverable": [],
+        "unrecoverable": [],
+        "valid": [
+          {
+            "annotationUrl": "http://localhost:3000/#anno-record-id=00000000-0000-0000-0000-000000000001",
+            "createdAt": 2026-07-26T00:00:00.000Z,
+            "id": "00000000-0000-0000-0000-000000000001",
+            "metadata": {
+              "note": "new",
+              "score": 0,
+            },
+            "normalizedUrl": "http://localhost:3000/",
+            "originalUrl": "http://localhost:3000/",
+            "range": Range {},
+            "text": "hello world",
+            "version": "1.0.0",
+          },
+        ],
+      }
+    `);
   });
 });
 
@@ -165,11 +268,40 @@ describe('popup', () => {
     await store.content.set(a1);
     await store.content.set(a2);
     const results = await store.popup.get();
-    expect(Object.keys(results)).toHaveLength(2);
-    expect(results['https://a.com/page']).toHaveLength(1);
-    expect(results['https://a.com/page'][0].id).toBe('00000000-0000-0000-0000-000000000001');
-    expect(results['https://b.com/page']).toHaveLength(1);
-    expect(results['https://b.com/page'][0].id).toBe('00000000-0000-0000-0000-000000000002');
+    expect(results).toMatchInlineSnapshot(`
+      {
+        "https://a.com/page": [
+          {
+            "annotationUrl": "http://localhost:3000/#anno-record-id=00000000-0000-0000-0000-000000000001",
+            "createdAt": 2026-07-26T00:00:00.000Z,
+            "id": "00000000-0000-0000-0000-000000000001",
+            "metadata": {
+              "note": "init",
+              "score": 0,
+            },
+            "normalizedUrl": "https://a.com/page",
+            "originalUrl": "http://localhost:3000/",
+            "text": "hello world",
+            "version": "1.0.0",
+          },
+        ],
+        "https://b.com/page": [
+          {
+            "annotationUrl": "http://localhost:3000/#anno-record-id=00000000-0000-0000-0000-000000000002",
+            "createdAt": 2026-07-26T00:00:00.000Z,
+            "id": "00000000-0000-0000-0000-000000000002",
+            "metadata": {
+              "note": "init",
+              "score": 0,
+            },
+            "normalizedUrl": "https://b.com/page",
+            "originalUrl": "http://localhost:3000/",
+            "text": "hello world",
+            "version": "1.0.0",
+          },
+        ],
+      }
+    `);
   });
 
   it('returns multiple annotations per URL', async () => {
@@ -179,7 +311,38 @@ describe('popup', () => {
     await store.content.set(a1);
     await store.content.set(a2);
     const results = await store.popup.get();
-    expect(results[location.href]).toHaveLength(2);
+    expect(results).toMatchInlineSnapshot(`
+      {
+        "http://localhost:3000/": [
+          {
+            "annotationUrl": "http://localhost:3000/#anno-record-id=00000000-0000-0000-0000-000000000001",
+            "createdAt": 2026-07-26T00:00:00.000Z,
+            "id": "00000000-0000-0000-0000-000000000001",
+            "metadata": {
+              "note": "init",
+              "score": 0,
+            },
+            "normalizedUrl": "http://localhost:3000/",
+            "originalUrl": "http://localhost:3000/",
+            "text": "hello world",
+            "version": "1.0.0",
+          },
+          {
+            "annotationUrl": "http://localhost:3000/#anno-record-id=00000000-0000-0000-0000-000000000002",
+            "createdAt": 2026-07-26T00:00:00.000Z,
+            "id": "00000000-0000-0000-0000-000000000002",
+            "metadata": {
+              "note": "init",
+              "score": 0,
+            },
+            "normalizedUrl": "http://localhost:3000/",
+            "originalUrl": "http://localhost:3000/",
+            "text": "hello world",
+            "version": "1.0.0",
+          },
+        ],
+      }
+    `);
   });
 
   it('updates metadata and returns updated annotation', async () => {
@@ -191,13 +354,26 @@ describe('popup', () => {
       return { note: m.note + ' updated', score: m.score + 1 };
     }
 
-    const updated = await store.popup.updateMetadata('00000000-0000-0000-0000-000000000001', updateFn);
+    const updated = await store.popup.updateMetadata(
+      '00000000-0000-0000-0000-000000000001',
+      updateFn,
+    );
 
-    const results = await store.popup.get();
-    const stored = results[location.href][0];
-
-    expect(updated).toStrictEqual(stored);
-    expect(updated.metadata).toStrictEqual({ note: 'init updated', score: 1 });
+    expect(updated).toMatchInlineSnapshot(`
+      {
+        "annotationUrl": "http://localhost:3000/#anno-record-id=00000000-0000-0000-0000-000000000001",
+        "createdAt": 2026-07-26T00:00:00.000Z,
+        "id": "00000000-0000-0000-0000-000000000001",
+        "metadata": {
+          "note": "init updated",
+          "score": 1,
+        },
+        "normalizedUrl": "http://localhost:3000/",
+        "originalUrl": "http://localhost:3000/",
+        "text": "hello world",
+        "version": "1.0.0",
+      }
+    `);
   });
 
   it('updates metadata throws when annotation ID not found', async () => {
