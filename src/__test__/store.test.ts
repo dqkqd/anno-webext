@@ -139,11 +139,16 @@ describe('content', () => {
     });
   });
 
-  it('throws when annotation with same ID already exists', async () => {
+  it('update annotation if it is already exist', async () => {
     document.body.innerHTML = '<p>hello world</p>';
     const annotation = annotate('hello world');
     await store.content.set(annotation);
-    await expect(store.content.set(annotation)).rejects.toThrow(annotation.id);
+
+    annotation.metadata.note = 'new';
+    await store.content.set(annotation);
+
+    const result = await store.content.get();
+    expect(result.valid[0].metadata).toStrictEqual({ note: 'new', score: 0 });
   });
 });
 

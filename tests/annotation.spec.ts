@@ -404,3 +404,47 @@ test('does not restore annotation when DOM text changes at same XPath', async ({
   await expect(invalidItems).toHaveCount(1);
   await expect(invalidItems.first()).toHaveText('two');
 });
+
+test('try to restore annotation when DOM text changes at different XPath', async ({ annotatedUrls, context }) => {
+  const page = await context.newPage();
+  const urls = await annotatedUrls(`
+  <html>
+    <body>
+      <p>one</p>
+      <p>two</p>
+    </body>
+  </html>
+`);
+
+  await page.goto(urls[0]);
+  await annotateText(page, (document) => {
+    const p = document.querySelectorAll('p')[0];
+    const range = document.createRange();
+    range.setStart(p.firstChild!, 0);
+    range.setEnd(p.firstChild!, 3);
+    return range;
+  });
+  await annotateText(page, (document) => {
+    const p = document.querySelectorAll('p')[1];
+    const range = document.createRange();
+    range.setStart(p.firstChild!, 0);
+    range.setEnd(p.firstChild!, 3);
+    return range;
+  });
+  await expectedToBeAnnotated(page, expect, ['one', 'two']);
+
+  // Overwrite the same URL with modified HTML: one and two are swapped
+  await annotatedUrls({
+    url: urls[0],
+    html: `
+  <html>
+    <body>
+      <p>two</p>
+      <p>one</p>
+    </body>
+  </html>
+`,
+  });
+  await page.reload();
+  await expectedToBeAnnotated(page, expect, ['one', 'two']);
+});

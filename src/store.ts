@@ -92,11 +92,14 @@ async function contentSet<M, S>(
 ): Promise<void> {
   const storedAnnotations = await browserStorage.get<S>();
   const annotationsInUrl = storedAnnotations[annotation.normalizedUrl] ?? [];
-  if (annotationsInUrl.find((s) => s.id == annotation.id)) {
-    throw Error(`An annotation with id ${annotation.id} already exists`);
-  }
+  const index = annotationsInUrl.findIndex((s) => s.id == annotation.id);
+
   const stored = codec.encode(annotation);
-  annotationsInUrl.push(stored);
+  if (index === -1) {
+    annotationsInUrl.push(stored);
+  } else {
+    annotationsInUrl[index] = stored;
+  }
 
   storedAnnotations[annotation.normalizedUrl] = annotationsInUrl;
   await browserStorage.set(storedAnnotations);
