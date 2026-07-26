@@ -17,8 +17,7 @@ import {
   getAnnotationIdFromUrl,
   normalizeUrl,
 } from './url';
-import { normalizeText } from './utils';
-import { getScrollElement } from './utils';
+import { getScrollElement, normalizeText } from './utils';
 
 export function createAnno<M, S>(options: AnnoOptions<M, S>): Anno<M> {
   const store = createStore(options);
