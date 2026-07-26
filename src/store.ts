@@ -2,17 +2,19 @@ import { UUID } from 'crypto';
 import { createCodec } from './codec';
 import type {
   AnnoCodec,
-  AnnoOptions,
   AnnoStore,
   AnnoStoreContentGet,
   Annotation,
   Annotations,
   RenderableAnnotation,
+  ResolveAnnoOptions,
   StoredAnnotation,
 } from './types';
 import { normalizeUrl } from './url';
 
-export function createStore<M, S>(options: AnnoOptions<M, S>): AnnoStore<M> {
+export function createStore<M, S>(
+  options: ResolveAnnoOptions<M, S>,
+): AnnoStore<M> {
   const codec = createCodec(options);
   return {
     content: {

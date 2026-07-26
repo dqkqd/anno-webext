@@ -3,15 +3,17 @@ import { getNodeByXPath, getNodeXPath } from './location';
 import type {
   AnnoCodec,
   AnnoCodecDecodeReturnType,
-  AnnoOptions,
   Annotation,
   RenderableAnnotation,
+  ResolveAnnoOptions,
   StoredAnnotation,
   StoredRange,
 } from './types';
 import { normalizeText } from './utils';
 
-export function createCodec<M, S>(options: AnnoOptions<M, S>): AnnoCodec<M, S> {
+export function createCodec<M, S>(
+  options: ResolveAnnoOptions<M, S>,
+): AnnoCodec<M, S> {
   const metadata = options.metadata;
 
   function decodeNonRenderable(stored: StoredAnnotation<S>): Annotation<M> {
