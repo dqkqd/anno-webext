@@ -1,17 +1,12 @@
-import { beforeAll, beforeEach, describe, expect, it } from 'vitest';
+import { describe, expect, it } from 'vitest';
 import { createStore } from '../store';
 import {
   annoOptionsTest,
   annotate,
-  resetStore,
-  setupStorageMock,
   type TestMeta,
 } from './utils';
 
 const store = createStore(annoOptionsTest);
-
-beforeAll(() => setupStorageMock());
-beforeEach(() => resetStore());
 
 describe('content', () => {
   it('simple get and set', async () => {
