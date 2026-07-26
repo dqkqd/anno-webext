@@ -13,7 +13,7 @@ describe('createCodec', () => {
       const stored = codec.encode(annotation);
 
       expect(stored).toStrictEqual({
-        id: annotation.id,
+        id: '00000000-0000-0000-0000-000000000001',
         version: '1.0.0',
         text: 'hello',
         originalUrl: annotation.originalUrl,
@@ -39,7 +39,7 @@ describe('createCodec', () => {
       const decoded = codec.decodeNonRenderable(stored);
 
       expect(decoded).toStrictEqual({
-        id: stored.id,
+        id: '00000000-0000-0000-0000-000000000001',
         version: stored.version,
         text: stored.text,
         originalUrl: stored.originalUrl,

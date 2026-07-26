@@ -51,7 +51,7 @@ describe('content', () => {
       expect(results).toStrictEqual({
         valid: [],
         recoverable: [{
-          id: annotation.id,
+          id: '00000000-0000-0000-0000-000000000001',
           version: annotation.version,
           text: 'hello world',
           originalUrl: annotation.originalUrl,
@@ -77,7 +77,7 @@ describe('content', () => {
         recoverable: [],
         unrecoverable: [
           {
-            id: annotation.id,
+            id: '00000000-0000-0000-0000-000000000001',
             version: annotation.version,
             text: annotation.text,
             originalUrl: annotation.originalUrl,
@@ -108,7 +108,7 @@ describe('content', () => {
         valid: [],
         recoverable: [],
         unrecoverable: [{
-          id: annotation.id,
+          id: '00000000-0000-0000-0000-000000000001',
           version: annotation.version,
           text: annotation.text,
           originalUrl: annotation.originalUrl,
@@ -172,9 +172,9 @@ describe('popup', () => {
     const results = await store.popup.get();
     expect(Object.keys(results)).toHaveLength(2);
     expect(results['https://a.com/page']).toHaveLength(1);
-    expect(results['https://a.com/page'][0].id).toBe(a1.id);
+    expect(results['https://a.com/page'][0].id).toBe('00000000-0000-0000-0000-000000000001');
     expect(results['https://b.com/page']).toHaveLength(1);
-    expect(results['https://b.com/page'][0].id).toBe(a2.id);
+    expect(results['https://b.com/page'][0].id).toBe('00000000-0000-0000-0000-000000000002');
   });
 
   it('returns multiple annotations per URL', async () => {
@@ -196,7 +196,7 @@ describe('popup', () => {
       return { note: m.note + ' updated', score: m.score + 1 };
     }
 
-    const updated = await store.popup.updateMetadata(annotation.id, updateFn);
+    const updated = await store.popup.updateMetadata('00000000-0000-0000-0000-000000000001', updateFn);
 
     const results = await store.popup.get();
     const stored = results[location.href][0];
