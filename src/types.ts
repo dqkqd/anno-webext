@@ -1,5 +1,4 @@
-// TODO: this isn't needed
-export type UUID = `${string}-${string}-${string}-${string}-${string}`;
+import { UUID } from 'crypto';
 
 export type Annotations<Meta> = {
   [normalizedUrl: string]: Annotation<Meta>[];
@@ -91,7 +90,7 @@ export type AnnoOptions<Memory, Storable> = {
   cssClass?: string;
 };
 
-export type DomAnnotationQueryOptions = {
+export type RenderableAnnotationQueryOptions = {
   x: number;
   y: number;
 };
@@ -101,7 +100,9 @@ export type AnnoContent<M> = {
   restore: () => Promise<
     { valid: RenderableAnnotation<M>[]; invalid: Annotation<M>[] }
   >;
-  query: (options: DomAnnotationQueryOptions) => RenderableAnnotation<M>[];
+  query: (
+    options: RenderableAnnotationQueryOptions,
+  ) => RenderableAnnotation<M>[];
 };
 
 export type AnnoPopup<M> = {
@@ -139,7 +140,7 @@ export type AnnoStore<M> = {
 
 export type AnnoCodec<M, S> = {
   /**
-   * encode the `DomAnnotation` to `StoredAnnotation`
+   * encode the `RenderableAnnotation` to `StoredAnnotation`
    */
   encode: (annotation: RenderableAnnotation<M>) => StoredAnnotation<S>;
 
@@ -149,9 +150,11 @@ export type AnnoCodec<M, S> = {
   decode: (stored: StoredAnnotation<S>) => Annotation<M>;
 
   /**
-   * decode the `StoredAnnotation` to `DomAnnotation`
+   * decode the `StoredAnnotation` to `RenderableAnnotation`
    */
-  decodeDom: (stored: StoredAnnotation<S>) => RenderableAnnotation<M> | undefined;
+  decodeRenderable: (
+    stored: StoredAnnotation<S>,
+  ) => RenderableAnnotation<M> | undefined;
 
   metadata: {
     encode: (m: M) => S;

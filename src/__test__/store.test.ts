@@ -1,6 +1,5 @@
 import { beforeAll, beforeEach, describe, expect, it } from 'vitest';
 import { createStore } from '../store';
-import type { UUID } from '../types';
 import {
   annoOptionsTest,
   annotate,
@@ -212,7 +211,7 @@ describe('popup', () => {
 
   it('updates metadata throws when annotation ID not found', async () => {
     const store = createStore(annoOptionsTest);
-    const fakeId = '00000000-0000-0000-0000-000000000000' as UUID;
+    const fakeId = '00000000-0000-0000-0000-000000000000';
     await expect(
       store.popup.updateMetadata(fakeId, (m) => m),
     ).rejects.toThrow(fakeId);

@@ -1,6 +1,10 @@
-import { beforeEach, describe, expect, it } from 'vitest';
+import { describe, expect, it } from 'vitest';
 import { createCodec } from '../codec';
-import type { AnnoOptions, RenderableAnnotation, StoredAnnotation } from '../types';
+import type {
+  AnnoOptions,
+  RenderableAnnotation,
+  StoredAnnotation,
+} from '../types';
 
 const options: AnnoOptions<string, string> = {
   metadata: {
@@ -40,7 +44,7 @@ describe('createCodec', () => {
   const codec = createCodec(options);
 
   describe('encode', () => {
-    it('converts DomAnnotation to StoredAnnotation', () => {
+    it('converts RenderableAnnotation to StoredAnnotation', () => {
       const annotation = makeAnnotation();
       const stored = codec.encode(annotation);
 
@@ -101,11 +105,11 @@ describe('createCodec', () => {
     });
   });
 
-  describe('decodeDom', () => {
+  describe('decodeRenderable', () => {
     it('resolves XPaths to valid Range', () => {
       const annotation = makeAnnotation();
       const stored = codec.encode(annotation);
-      const restored = codec.decodeDom(stored);
+      const restored = codec.decodeRenderable(stored);
 
       expect(restored).toBeDefined();
       expect(restored!.range.toString()).toBe('hello');
@@ -122,7 +126,7 @@ describe('createCodec', () => {
         const stored = codec.encode(annotation);
         stored.range.startContainerXPath = '/html[1]/body[1]/nonexistent[1]';
 
-        expect(codec.decodeDom(stored)).toBeUndefined();
+        expect(codec.decodeRenderable(stored)).toBeUndefined();
       });
 
       it('endContainer xpath is invalid', () => {
@@ -130,7 +134,7 @@ describe('createCodec', () => {
         const stored = codec.encode(annotation);
         stored.range.endContainerXPath = '/html[1]/body[1]/nonexistent[1]';
 
-        expect(codec.decodeDom(stored)).toBeUndefined();
+        expect(codec.decodeRenderable(stored)).toBeUndefined();
       });
 
       it('scrollElement xpath is invalid', () => {
@@ -138,7 +142,7 @@ describe('createCodec', () => {
         const stored = codec.encode(annotation);
         stored.scrollElement = '/html[1]/body[1]/nonexistent[1]';
 
-        expect(codec.decodeDom(stored)).toBeUndefined();
+        expect(codec.decodeRenderable(stored)).toBeUndefined();
       });
 
       it('range resolves to collapsed', () => {
@@ -146,7 +150,7 @@ describe('createCodec', () => {
         const stored = codec.encode(annotation);
         stored.range.endOffset = stored.range.startOffset;
 
-        expect(codec.decodeDom(stored)).toBeUndefined();
+        expect(codec.decodeRenderable(stored)).toBeUndefined();
       });
     });
 
@@ -155,7 +159,7 @@ describe('createCodec', () => {
       const stored = codec.encode(annotation);
       stored.range.startOffset = 9999;
 
-      expect(() => codec.decodeDom(stored)).toThrow(DOMException);
+      expect(() => codec.decodeRenderable(stored)).toThrow(DOMException);
     });
   });
 });

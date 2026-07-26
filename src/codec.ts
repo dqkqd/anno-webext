@@ -35,7 +35,7 @@ export function createCodec<M, S>(options: AnnoOptions<M, S>): AnnoCodec<M, S> {
       };
     },
 
-    decodeDom: (
+    decodeRenderable: (
       stored: StoredAnnotation<S>,
     ): RenderableAnnotation<M> | undefined => {
       // TODO: this should return 3 cases: valid, recoverable, unrecorverable!

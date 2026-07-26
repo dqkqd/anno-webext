@@ -1,5 +1,8 @@
 import RBush from 'rbush';
-import { RenderableAnnotation, DomAnnotationQueryOptions } from './types';
+import {
+  RenderableAnnotation,
+  RenderableAnnotationQueryOptions,
+} from './types';
 
 const domAnnotationsRegistry = new RBush();
 
@@ -25,7 +28,9 @@ export const rtree = {
       data: annotation,
     });
   },
-  query: <M>(option: DomAnnotationQueryOptions): RenderableAnnotation<M>[] => {
+  query: <M>(
+    option: RenderableAnnotationQueryOptions,
+  ): RenderableAnnotation<M>[] => {
     const res = domAnnotationsRegistry.search({
       minX: option.x,
       minY: option.y,

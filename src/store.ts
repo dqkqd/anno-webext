@@ -67,7 +67,7 @@ async function contentGet<M, S>(
   const unrecoverable: Annotation<M>[] = [];
 
   for (const stored of storedAnnotations) {
-    const annotation = codec.decodeDom(stored);
+    const annotation = codec.decodeRenderable(stored);
 
     // an annotation is valid in the dom if the restored range match with the text itself
     const isValid = annotation !== undefined
