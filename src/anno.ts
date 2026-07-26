@@ -2,6 +2,7 @@ import {
   type AnnoHighlightRegistry,
   createHighlightRegistry,
 } from './highlight';
+import { resolveOptions } from './options';
 import { rtree } from './rtree';
 import { createStore } from './store';
 import type {
@@ -19,13 +20,19 @@ import {
 } from './url';
 import { getScrollElement, normalizeText } from './utils';
 
-export function createAnno<M, S>(options: AnnoOptions<M, S>): Anno<M> {
-  const store = createStore(options);
-  const highlightRegistry = createHighlightRegistry(options.cssClass);
+export function createAnno(): Anno<object>;
+export function createAnno<M, S>(options: AnnoOptions<M, S>): Anno<M>;
+export function createAnno<M, S>(options?: AnnoOptions<M, S>): Anno<M> {
+  const resolvedOptions = resolveOptions(options);
+  const store = createStore(resolvedOptions);
+  const highlightRegistry = createHighlightRegistry(resolvedOptions.cssClass);
 
   const content: AnnoContent<M> = {
     annotate: async (): Promise<RenderableAnnotation<M> | undefined> => {
-      const annotation = annotate(options.metadata.init, highlightRegistry);
+      const annotation = annotate(
+        resolvedOptions.metadata.init,
+        highlightRegistry,
+      );
       if (!annotation) {
         return;
       }

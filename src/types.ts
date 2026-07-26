@@ -77,13 +77,39 @@ export interface StoredAnnotation<S> extends IAnnotation<S> {
 }
 
 export type AnnoOptions<Memory, Storable> = {
-  metadata: {
+  /**
+   * Additional metadata on the highlight.
+   *
+   * An annotation must be persisted in the storage, so its metadata.
+   * Therefore the metadata must be serializable. (i.e. firefox extension
+   * storage doesn't store `Date` object, so the metadata must convert `Data`
+   * string to avoid data loss)
+   *
+   * The metadata option requires 3 methods:
+   *  - init: create a new in-memory metadata
+   *  - encode: convert the in-memory metadata so that it can be stored on the storage
+   *  - decode: convert the stored metadata to in-memory metadata
+   *
+   *  The metadata can be undefined, in such case, there is no metadata
+   *  for the annotation.
+   */
+  metadata?: {
     init: () => Memory;
     encode: (m: Memory) => Storable;
     decode: (s: Storable) => Memory;
   };
+
+  /**
+   * The custom css class for the annotation.
+   * The purpose is to render the highlight in the browser
+   * See more at [CSS Custom Highlight API](https://developer.mozilla.org/en-US/docs/Web/API/CSS_Custom_Highlight_API#style_highlights)
+   */
   cssClass?: string;
 };
+
+export type ResolveAnnoOptions<Memory, Storable> = Required<
+  AnnoOptions<Memory, Storable>
+>;
 
 export type RenderableAnnotationQueryOptions = {
   x: number;
