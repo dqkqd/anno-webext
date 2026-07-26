@@ -1,17 +1,21 @@
 import './content-script.css';
-import type { Annotation } from 'anno-webext';
+import type { Annotation, RenderableAnnotation } from 'anno-webext';
 import { anno } from './utils';
 
 const container = document.createElement('div');
 container.id = 'all-annos';
 document.body.appendChild(container);
 
+const invalidContainer = document.createElement('div');
+invalidContainer.id = 'invalid-annos';
+document.body.appendChild(invalidContainer);
+
 const ul = document.createElement('ul');
 const hover = document.createElement('div');
 hover.id = 'hover';
 container.append(ul, hover);
 
-function addAnnotation(a: Annotation<number>) {
+function addAnnotation(a: RenderableAnnotation<number>) {
   const li = document.createElement('li');
 
   const anchor = document.createElement('a');
@@ -35,11 +39,16 @@ function addAnnotation(a: Annotation<number>) {
   ul.appendChild(li);
 }
 
+function addInvalidAnnotation(a: Annotation<number>) {
+  const li = document.createElement('li');
+  li.textContent = a.text;
+  invalidContainer.appendChild(li);
+}
+
 // reload all annotations on pageload
-void anno.content.restore().then((restored) => {
-  for (const a of restored) {
-    addAnnotation(a);
-  }
+void anno.content.restore().then(({ valid, invalid }) => {
+  valid.forEach(addAnnotation);
+  invalid.forEach(addInvalidAnnotation);
 });
 
 // highlight on mouse up

@@ -345,6 +345,11 @@ test('restore annotations should not crash if one of the annotations is invalid'
   await page.goto(urls[0]);
   // Highlight1 is still activated, but not Highlight2 here
   await expectedToBeAnnotated(page, expect, ['Highlight1']);
+
+  // Highlight2 should appear in the invalid annotations list
+  const invalidItems = page.locator('#invalid-annos li');
+  await expect(invalidItems).toHaveCount(1);
+  await expect(invalidItems.first()).toHaveText('Highlight2');
 });
 
 test('does not restore annotation when DOM text changes at same XPath', async ({ annotatedUrls, context }) => {
@@ -393,4 +398,9 @@ test('does not restore annotation when DOM text changes at same XPath', async ({
   // Only 'one' should be restored; 'two' was removed, so its XPath now
   // points to 'three', which must NOT be annotated.
   await expectedToBeAnnotated(page, expect, ['one']);
+
+  // 'two' should appear in the invalid annotations list
+  const invalidItems = page.locator('#invalid-annos li');
+  await expect(invalidItems).toHaveCount(1);
+  await expect(invalidItems.first()).toHaveText('two');
 });
