@@ -8,6 +8,8 @@ import {
   type TestMeta,
 } from './utils';
 
+const store = createStore(annoOptionsTest);
+
 beforeAll(() => setupStorageMock());
 beforeEach(() => resetStore());
 
@@ -17,7 +19,6 @@ describe('content', () => {
     const a1 = annotate('hello world1');
     const a2 = annotate('hello world2');
 
-    const store = createStore(annoOptionsTest);
     await store.content.set(a1);
     await store.content.set(a2);
 
@@ -30,7 +31,6 @@ describe('content', () => {
   });
 
   it('returns empty array when nothing stored for current URL', async () => {
-    const store = createStore(annoOptionsTest);
     const results = await store.content.get();
     expect(results).toStrictEqual({
       valid: [],
@@ -43,7 +43,6 @@ describe('content', () => {
     it('recovers annotations when DOM is restructured', async () => {
       document.body.innerHTML = '<p>hello world</p>';
       const annotation = annotate('hello world');
-      const store = createStore(annoOptionsTest);
       await store.content.set(annotation);
 
       document.body.innerHTML = '<div>hello world</div>';
@@ -70,7 +69,6 @@ describe('content', () => {
     it('annotations whose DOM nodes were removed', async () => {
       document.body.innerHTML = '<p>hello world</p>';
       const annotation = annotate('hello world');
-      const store = createStore(annoOptionsTest);
       await store.content.set(annotation);
 
       document.body.innerHTML = '';
@@ -96,7 +94,6 @@ describe('content', () => {
     it('annotations whose text does not match range', async () => {
       document.body.innerHTML = '<p>hello world</p>';
       const annotation = annotate('hello world');
-      const store = createStore(annoOptionsTest);
       await store.content.set(annotation);
 
       expect(await store.content.get()).toStrictEqual({
@@ -126,7 +123,6 @@ describe('content', () => {
     it('does not return annotations from other URLs', async () => {
       document.body.innerHTML = '<p>hello world</p>';
       const a1 = annotate('hello world');
-      const store = createStore(annoOptionsTest);
       await store.content.set(a1);
 
       document.body.innerHTML = '<p>hello world</p>';
@@ -146,7 +142,6 @@ describe('content', () => {
   it('throws when annotation with same ID already exists', async () => {
     document.body.innerHTML = '<p>hello world</p>';
     const annotation = annotate('hello world');
-    const store = createStore(annoOptionsTest);
     await store.content.set(annotation);
     await expect(store.content.set(annotation)).rejects.toThrow(annotation.id);
   });
@@ -154,7 +149,6 @@ describe('content', () => {
 
 describe('popup', () => {
   it('returns empty object when nothing stored', async () => {
-    const store = createStore(annoOptionsTest);
     const results = await store.popup.get();
     expect(results).toEqual({});
   });
@@ -168,7 +162,6 @@ describe('popup', () => {
     const a2 = annotate('hello world');
     a2.normalizedUrl = 'https://b.com/page';
 
-    const store = createStore(annoOptionsTest);
     await store.content.set(a1);
     await store.content.set(a2);
     const results = await store.popup.get();
@@ -183,7 +176,6 @@ describe('popup', () => {
     document.body.innerHTML = '<p>hello world</p>';
     const a1 = annotate('hello world');
     const a2 = annotate('hello world');
-    const store = createStore(annoOptionsTest);
     await store.content.set(a1);
     await store.content.set(a2);
     const results = await store.popup.get();
@@ -193,7 +185,6 @@ describe('popup', () => {
   it('updates metadata and returns updated annotation', async () => {
     document.body.innerHTML = '<p>hello world</p>';
     const annotation = annotate('hello world');
-    const store = createStore(annoOptionsTest);
     await store.content.set(annotation);
 
     function updateFn(m: TestMeta) {
@@ -210,7 +201,6 @@ describe('popup', () => {
   });
 
   it('updates metadata throws when annotation ID not found', async () => {
-    const store = createStore(annoOptionsTest);
     const fakeId = '00000000-0000-0000-0000-000000000000';
     await expect(
       store.popup.updateMetadata(fakeId, (m) => m),
