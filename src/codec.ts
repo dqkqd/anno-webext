@@ -27,7 +27,7 @@ export function createCodec<M, S>(options: AnnoOptions<M, S>): AnnoCodec<M, S> {
       };
     },
 
-    decode: (stored: StoredAnnotation<S>): Annotation<M> => {
+    decodeNonRenderable: (stored: StoredAnnotation<S>): Annotation<M> => {
       return {
         ...stored,
         createdAt: new Date(stored.createdAt),
@@ -35,7 +35,7 @@ export function createCodec<M, S>(options: AnnoOptions<M, S>): AnnoCodec<M, S> {
       };
     },
 
-    decodeRenderable: (
+    decode: (
       stored: StoredAnnotation<S>,
     ): RenderableAnnotation<M> | undefined => {
       // TODO: this should return 3 cases: valid, recoverable, unrecorverable!

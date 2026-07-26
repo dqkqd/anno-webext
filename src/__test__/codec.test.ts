@@ -36,7 +36,7 @@ describe('createCodec', () => {
       document.body.innerHTML = '<p>hello world</p>';
       const annotation = annotate('hello');
       const stored = codec.encode(annotation);
-      const decoded = codec.decode(stored);
+      const decoded = codec.decodeNonRenderable(stored);
 
       expect(decoded).toStrictEqual({
         ...stored,
@@ -51,7 +51,7 @@ describe('createCodec', () => {
       document.body.innerHTML = '<p>hello world</p>';
       const annotation = annotate('hello');
       const stored = codec.encode(annotation);
-      const restored = codec.decodeRenderable(stored);
+      const restored = codec.decode(stored);
 
       expect(restored).toBeDefined();
       expect(restored!.range.toString()).toBe('hello');
@@ -69,7 +69,7 @@ describe('createCodec', () => {
         const stored = codec.encode(annotation);
         stored.range.startContainerXPath = '/html[1]/body[1]/nonexistent[1]';
 
-        expect(codec.decodeRenderable(stored)).toBeUndefined();
+        expect(codec.decode(stored)).toBeUndefined();
       });
 
       it('endContainer xpath is invalid', () => {
@@ -78,7 +78,7 @@ describe('createCodec', () => {
         const stored = codec.encode(annotation);
         stored.range.endContainerXPath = '/html[1]/body[1]/nonexistent[1]';
 
-        expect(codec.decodeRenderable(stored)).toBeUndefined();
+        expect(codec.decode(stored)).toBeUndefined();
       });
 
       it('scrollElement xpath is invalid', () => {
@@ -87,7 +87,7 @@ describe('createCodec', () => {
         const stored = codec.encode(annotation);
         stored.scrollElement = '/html[1]/body[1]/nonexistent[1]';
 
-        expect(codec.decodeRenderable(stored)).toBeUndefined();
+        expect(codec.decode(stored)).toBeUndefined();
       });
 
       it('range resolves to collapsed', () => {
@@ -96,7 +96,7 @@ describe('createCodec', () => {
         const stored = codec.encode(annotation);
         stored.range.endOffset = stored.range.startOffset;
 
-        expect(codec.decodeRenderable(stored)).toBeUndefined();
+        expect(codec.decode(stored)).toBeUndefined();
       });
     });
 
@@ -106,7 +106,7 @@ describe('createCodec', () => {
       const stored = codec.encode(annotation);
       stored.range.startOffset = 9999;
 
-      expect(() => codec.decodeRenderable(stored)).toThrow(DOMException);
+      expect(() => codec.decode(stored)).toThrow(DOMException);
     });
   });
 });

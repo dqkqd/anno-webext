@@ -147,12 +147,12 @@ export type AnnoCodec<M, S> = {
   /**
    * decode the `StoredAnnotation` to `Annotation`
    */
-  decode: (stored: StoredAnnotation<S>) => Annotation<M>;
+  decodeNonRenderable: (stored: StoredAnnotation<S>) => Annotation<M>;
 
   /**
    * decode the `StoredAnnotation` to `RenderableAnnotation`
    */
-  decodeRenderable: (
+  decode: (
     stored: StoredAnnotation<S>,
   ) => RenderableAnnotation<M> | undefined;
 

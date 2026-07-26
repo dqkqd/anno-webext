@@ -67,7 +67,7 @@ async function contentGet<M, S>(
   const unrecoverable: Annotation<M>[] = [];
 
   for (const stored of storedAnnotations) {
-    const annotation = codec.decodeRenderable(stored);
+    const annotation = codec.decode(stored);
 
     // an annotation is valid in the dom if the restored range match with the text itself
     const isValid = annotation !== undefined
@@ -82,7 +82,7 @@ async function contentGet<M, S>(
     // We try to search by the stored text first, to get the matching node first.
     // TODO: should we search the whole body?
     const range = getRangeByText(document.body, stored.text);
-    const newAnnotation = codec.decode(stored);
+    const newAnnotation = codec.decodeNonRenderable(stored);
 
     // No range can be found for the given text, this is an unrecoverable annotation
     if (range === undefined) {
@@ -128,7 +128,7 @@ async function popupGet<M, S>(
   const annotations = Object.fromEntries(
     Object.entries(stored).map(([url, storedAnnotations]) => [
       url,
-      storedAnnotations.map((s) => codec.decode(s)),
+      storedAnnotations.map((s) => codec.decodeNonRenderable(s)),
     ]),
   );
   return annotations;
@@ -162,5 +162,5 @@ async function popupUpdateMetadata<M, S>(
   storedAnnotations[stored.normalizedUrl][storedIndex] = stored;
   await browserStorage.set(storedAnnotations);
 
-  return codec.decode(stored);
+  return codec.decodeNonRenderable(stored);
 }
