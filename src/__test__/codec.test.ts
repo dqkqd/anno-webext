@@ -53,9 +53,9 @@ describe('createCodec', () => {
       const restored = codec.decode(stored);
 
       expect(restored).toBeDefined();
-      expect(restored!.range.toString()).toBe('hello');
-      expect(restored!.metadata).toStrictEqual({ note: 'init', score: 0 });
-      expect(restored!.createdAt).toStrictEqual(
+      expect(restored.range.toString()).toBe('hello');
+      expect(restored.metadata).toStrictEqual({ note: 'init', score: 0 });
+      expect(restored.createdAt).toStrictEqual(
         new Date(stored.createdAt),
       );
     });

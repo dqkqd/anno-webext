@@ -133,6 +133,22 @@ export type AnnoStore<M> = {
   };
 };
 
+export type AnnoCodecDecodeReturnType<M> =
+  /*
+   * The annotation is restored and can be rendered on the DOM
+   */
+  | { kind: 'valid'; annotation: RenderableAnnotation<M> }
+  /*
+   * The annotation is invalid, but can be restored using text matching.
+   * And it can be rendered on the DOM.
+   */
+  | { kind: 'recoverable'; annotation: RenderableAnnotation<M> }
+  /*
+   * The annotation is invalid, cannot be restored using the text matching.
+   * Cannot be rendered on the DOM.
+   */
+  | { kind: 'unrecoverable'; annotation: Annotation<M> };
+
 export type AnnoCodec<M, S> = {
   /**
    * encode the `RenderableAnnotation` to `StoredAnnotation`
@@ -144,7 +160,7 @@ export type AnnoCodec<M, S> = {
    */
   decode: (
     stored: StoredAnnotation<S>,
-  ) => RenderableAnnotation<M> | undefined;
+  ) => AnnoCodecDecodeReturnType<M>;
 
   /**
    * decode the `StoredAnnotation` to `Annotation`

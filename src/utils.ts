@@ -6,3 +6,8 @@ export function getScrollElement(range: Range): Element {
     ? (range.startContainer as Element)
     : range.startContainer.parentElement!;
 }
+
+// Spaced-normalize text
+export function normalizeText(text: string): string {
+  return text.replace(/\s+/g, ' ').trim();
+}

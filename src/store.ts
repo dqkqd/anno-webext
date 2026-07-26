@@ -9,7 +9,6 @@ import type {
   Annotations,
   RenderableAnnotation,
   StoredAnnotation,
-  UUID,
 } from './types';
 import { normalizeUrl } from './url';
 
@@ -67,34 +66,21 @@ async function contentGet<M, S>(
   const unrecoverable: Annotation<M>[] = [];
 
   for (const stored of storedAnnotations) {
-    const annotation = codec.decode(stored);
-
-    // an annotation is valid in the dom if the restored range match with the text itself
-    const isValid = annotation !== undefined
-      && normalizeText(annotation.range.toString())
-        === normalizeText(stored.text);
-    if (isValid) {
-      valid.push(annotation);
-      continue;
+    const decoded = codec.decode(stored);
+    switch (decoded.kind) {
+      case 'valid': {
+        valid.push(decoded.annotation);
+        break;
+      }
+      case 'recoverable': {
+        recoverable.push(decoded.annotation);
+        break;
+      }
+      case 'unrecoverable': {
+        unrecoverable.push(decoded.annotation);
+        break;
+      }
     }
-
-    // The annotation is not valid, which means the DOM xpath is stale and it now point to a different node, or not exist anymore.
-    // We try to search by the stored text first, to get the matching node first.
-    // TODO: should we search the whole body?
-    const range = getRangeByText(document.body, stored.text);
-    const newAnnotation = codec.decodeNonRenderable(stored);
-
-    // No range can be found for the given text, this is an unrecoverable annotation
-    if (range === undefined) {
-      unrecoverable.push(newAnnotation);
-      continue;
-    }
-
-    recoverable.push({
-      ...newAnnotation,
-      range,
-      metadata: codec.metadata.decode(stored.metadata),
-    });
   }
 
   return { valid, recoverable, unrecoverable };
