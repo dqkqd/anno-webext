@@ -24,15 +24,13 @@ interface TextIndex {
 
 function buildTextIndex(root: Node): TextIndex {
   const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
-  const nodes: Text[] = [];
-  let node: Node | null;
-  while ((node = walker.nextNode())) {
-    nodes.push(node as Text);
-  }
 
   let text = '';
   let normalizedText = '';
-  const segments: TextNodeSegment[] = nodes.map((node) => {
+  const segments: TextNodeSegment[] = [];
+
+  let node: Node | null;
+  while ((node = walker.nextNode())) {
     const start = text.length;
     const normStart = normalizedText.length;
 
@@ -61,14 +59,14 @@ function buildTextIndex(root: Node): TextIndex {
       }
     }
 
-    return {
-      node,
+    segments.push({
+      node: node as Text,
       start,
       end: text.length,
       normStart,
       normEnd: normalizedText.length,
-    };
-  });
+    });
+  }
 
   // the last node can be empty, but one of the previous node appended a space
   // leaving the normalizedText contain trailing spaces
