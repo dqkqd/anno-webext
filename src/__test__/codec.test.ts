@@ -1,83 +1,25 @@
 import { describe, expect, it } from 'vitest';
 import { createCodec } from '../codec';
-import type {
-  AnnoOptions,
-  RenderableAnnotation,
-  StoredAnnotation,
-} from '../types';
+import { annoOptionsTest, annotate } from './utils';
 
-const options: AnnoOptions<string, string> = {
-  metadata: {
-    init: () => '',
-    encode: (s) => s.toUpperCase(),
-    decode: (s) => s.toLowerCase(),
-  },
-};
-
-function setupDom() {
-  document.body.innerHTML = '<div id="root"><p>hello world</p></div>';
-  const p = document.querySelector('p')!;
-  const textNode = p.firstChild as Text;
-  const range = document.createRange();
-  range.setStart(textNode, 0);
-  range.setEnd(textNode, 5);
-  return { p, textNode, range };
-}
-
-function makeAnnotation(): RenderableAnnotation<string> {
-  const { p, range } = setupDom();
-  return {
-    id: 'aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee',
-    version: '1.0.0',
-    text: 'hello',
-    originalUrl: 'https://example.com/page?utm_source=x',
-    normalizedUrl: 'https://example.com/page',
-    annotationUrl: 'https://example.com/page#anno=aaa',
-    createdAt: new Date('2024-01-01T00:00:00.000Z'),
-    range,
-    scrollElement: p,
-    metadata: 'hello',
-  };
-}
+const codec = createCodec(annoOptionsTest);
 
 describe('createCodec', () => {
-  const codec = createCodec(options);
-
   describe('encode', () => {
     it('converts RenderableAnnotation to StoredAnnotation', () => {
-      const annotation = makeAnnotation();
+      document.body.innerHTML = '<p>hello world</p>';
+      const annotation = annotate('hello');
       const stored = codec.encode(annotation);
 
       expect(stored).toStrictEqual({
-        id: 'aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee',
+        id: annotation.id,
         version: '1.0.0',
         text: 'hello',
-        originalUrl: 'https://example.com/page?utm_source=x',
-        normalizedUrl: 'https://example.com/page',
-        annotationUrl: 'https://example.com/page#anno=aaa',
-        createdAt: '2024-01-01T00:00:00.000Z',
-        metadata: 'HELLO',
-        range: {
-          startContainerXPath: '/html[1]/body[1]/div[1]/p[1]/text()[1]',
-          startOffset: 0,
-          endContainerXPath: '/html[1]/body[1]/div[1]/p[1]/text()[1]',
-          endOffset: 5,
-        },
-        scrollElement: '/html[1]/body[1]/div[1]/p[1]',
-      });
-    });
-  });
-
-  describe('decode', () => {
-    it('converts StoredAnnotation to Annotation', () => {
-      const stored: StoredAnnotation<string> = {
-        id: 'aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee',
-        version: '1.0.0',
-        text: 'hello',
-        originalUrl: 'https://example.com/page',
-        normalizedUrl: 'https://example.com/page',
-        annotationUrl: 'https://example.com/page#anno=aaa',
-        createdAt: '2024-01-01T00:00:00.000Z',
+        originalUrl: annotation.originalUrl,
+        normalizedUrl: annotation.normalizedUrl,
+        annotationUrl: annotation.annotationUrl,
+        createdAt: annotation.createdAt.toISOString(),
+        metadata: { note: 'init', score: '000' },
         range: {
           startContainerXPath: '/html[1]/body[1]/p[1]/text()[1]',
           startOffset: 0,
@@ -85,44 +27,45 @@ describe('createCodec', () => {
           endOffset: 5,
         },
         scrollElement: '/html[1]/body[1]/p[1]',
-        metadata: 'HELLO',
-      };
+      });
+    });
+  });
 
-      const annotation = codec.decode(stored);
+  describe('decode', () => {
+    it('converts StoredAnnotation to Annotation', () => {
+      document.body.innerHTML = '<p>hello world</p>';
+      const annotation = annotate('hello');
+      const stored = codec.encode(annotation);
+      const decoded = codec.decode(stored);
 
-      expect(annotation).toStrictEqual({
-        id: 'aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee',
-        version: '1.0.0',
-        text: 'hello',
-        originalUrl: 'https://example.com/page',
-        normalizedUrl: 'https://example.com/page',
-        annotationUrl: 'https://example.com/page#anno=aaa',
-        createdAt: new Date('2024-01-01T00:00:00.000Z'),
-        metadata: 'hello',
-        range: stored.range,
-        scrollElement: stored.scrollElement,
+      expect(decoded).toStrictEqual({
+        ...stored,
+        createdAt: new Date(stored.createdAt),
+        metadata: { note: 'init', score: 0 },
       });
     });
   });
 
   describe('decodeRenderable', () => {
     it('resolves XPaths to valid Range', () => {
-      const annotation = makeAnnotation();
+      document.body.innerHTML = '<p>hello world</p>';
+      const annotation = annotate('hello');
       const stored = codec.encode(annotation);
       const restored = codec.decodeRenderable(stored);
 
       expect(restored).toBeDefined();
       expect(restored!.range.toString()).toBe('hello');
       expect(restored!.scrollElement).toBe(annotation.scrollElement);
-      expect(restored!.metadata).toBe('hello');
+      expect(restored!.metadata).toStrictEqual({ note: 'init', score: 0 });
       expect(restored!.createdAt).toStrictEqual(
-        new Date('2024-01-01T00:00:00.000Z'),
+        new Date(stored.createdAt),
       );
     });
 
     describe('returns undefined when', () => {
       it('startContainer xpath is invalid', () => {
-        const annotation = makeAnnotation();
+        document.body.innerHTML = '<p>hello world</p>';
+        const annotation = annotate('hello');
         const stored = codec.encode(annotation);
         stored.range.startContainerXPath = '/html[1]/body[1]/nonexistent[1]';
 
@@ -130,7 +73,8 @@ describe('createCodec', () => {
       });
 
       it('endContainer xpath is invalid', () => {
-        const annotation = makeAnnotation();
+        document.body.innerHTML = '<p>hello world</p>';
+        const annotation = annotate('hello');
         const stored = codec.encode(annotation);
         stored.range.endContainerXPath = '/html[1]/body[1]/nonexistent[1]';
 
@@ -138,7 +82,8 @@ describe('createCodec', () => {
       });
 
       it('scrollElement xpath is invalid', () => {
-        const annotation = makeAnnotation();
+        document.body.innerHTML = '<p>hello world</p>';
+        const annotation = annotate('hello');
         const stored = codec.encode(annotation);
         stored.scrollElement = '/html[1]/body[1]/nonexistent[1]';
 
@@ -146,7 +91,8 @@ describe('createCodec', () => {
       });
 
       it('range resolves to collapsed', () => {
-        const annotation = makeAnnotation();
+        document.body.innerHTML = '<p>hello world</p>';
+        const annotation = annotate('hello');
         const stored = codec.encode(annotation);
         stored.range.endOffset = stored.range.startOffset;
 
@@ -155,7 +101,8 @@ describe('createCodec', () => {
     });
 
     it('throws when offset exceeds node length', () => {
-      const annotation = makeAnnotation();
+      document.body.innerHTML = '<p>hello world</p>';
+      const annotation = annotate('hello');
       const stored = codec.encode(annotation);
       stored.range.startOffset = 9999;
 
