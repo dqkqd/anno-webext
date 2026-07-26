@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { createCodec } from '../codec';
-import { annoOptionsTest, annotate } from './utils';
+import { RenderableAnnotation } from '../types';
+import { annoOptionsTest, annotate, TestMeta } from './utils';
 
 const codec = createCodec(annoOptionsTest);
 
@@ -58,11 +59,11 @@ describe('createCodec', () => {
       const decoded = codec.decode(stored);
 
       expect(decoded.kind).toBe('valid');
-      if (decoded.kind !== 'valid') {
-        return;
-      }
-      expect(decoded.annotation.range.toString()).toBe('hello');
-      expect(decoded.annotation.metadata).toStrictEqual({
+      const decodedAnnotation = decoded.annotation as RenderableAnnotation<
+        TestMeta
+      >;
+      expect(decodedAnnotation.range.toString()).toBe('hello');
+      expect(decodedAnnotation.metadata).toStrictEqual({
         note: 'init',
         score: 0,
       });
