@@ -1,5 +1,5 @@
 /* eslint-disable-next-line css/use-baseline */
 ::highlight(custom-highlight) {
-  background-color: yellow;
-  color: black;
+  background-color: #ff0066;
+  color: white;
 }
