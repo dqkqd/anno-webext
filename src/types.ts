@@ -100,11 +100,17 @@ export type AnnoOptions<Memory, Storable> = {
   };
 
   /**
-   * The custom css class for the annotation.
-   * The purpose is to render the highlight in the browser
+   * The css registry name for the annotation.
+   * For example, if `cssRegistry` is `highlight`, then the css will look like this:
+   * ```css
+   * ::highlight(user-1-highlight) {
+   *   background-color: yellow;
+   *   color: black;
+   * }
+   * ```
    * See more at [CSS Custom Highlight API](https://developer.mozilla.org/en-US/docs/Web/API/CSS_Custom_Highlight_API#style_highlights)
    */
-  cssClass?: string;
+  cssRegistry?: string;
 };
 
 export type ResolveAnnoOptions<Memory, Storable> = Required<

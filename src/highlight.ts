@@ -6,8 +6,6 @@ export type AnnoHighlightRegistry = {
   clear: () => void;
 };
 
-const DEFAULT_ANNOTATION_CLASS = 'anno--styles';
-
 /**
  * `CSS.highlights` doesn't have correct property on firefox.
  * Cause errors when looping through all the annotations.
@@ -20,18 +18,16 @@ const highlightRegistry: HighlightRegistry =
   (window.wrappedJSObject ?? window).CSS.highlights;
 
 export function createHighlightRegistry(
-  userAnnotationClass?: string,
+  registryName: string,
 ): AnnoHighlightRegistry {
-  const annotationClass = userAnnotationClass ?? DEFAULT_ANNOTATION_CLASS;
-
   function get() {
-    return highlightRegistry.get(annotationClass) ?? new Highlight();
+    return highlightRegistry.get(registryName) ?? new Highlight();
   }
 
   function set<M>(annotation: RenderableAnnotation<M>) {
     const highlights = get();
     highlights.add(annotation.range);
-    highlightRegistry.set(annotationClass, highlights);
+    highlightRegistry.set(registryName, highlights);
   }
 
   function clear() {

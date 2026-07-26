@@ -1,0 +1,28 @@
+{
+  "manifest_version": 3,
+  "name": "anno-webext-example-simple",
+  "version": "0.0.0",
+  "description": "anno-webext example simple",
+  "browser_specific_settings": {
+    "gecko": {
+      "id": "anno-webext@example.com",
+      "data_collection_permissions": {
+        "required": ["none"]
+      }
+    }
+  },
+  "permissions": ["storage"],
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["./dist/content-script.js"],
+      "css": ["./dist/content-script.css"]
+    }
+  ],
+  "web_accessible_resources": [
+    {
+      "resources": ["*"],
+      "matches": ["<all_urls>"]
+    }
+  ]
+}

@@ -1,0 +1,14 @@
+{
+  "scripts": {
+    "build": "vite build",
+    "web-ext:firefox": "vite build && web-ext run --source-dir .",
+    "web-ext:chrome": "vite build && web-ext run --source-dir . --target chromium"
+  },
+  "dependencies": {
+    "anno-webext": "github:dqkqd/anno-webext"
+  },
+  "devDependencies": {
+    "vite": "^8.1.5",
+    "web-ext": "^10.5.0"
+  }
+}
