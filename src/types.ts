@@ -1,17 +1,13 @@
-export type UUID = `${string}-${string}-${string}-${string}-${string}`;
+import { UUID } from 'crypto';
 
 export type Annotations<Meta> = {
   [normalizedUrl: string]: Annotation<Meta>[];
 };
 
-export type StoredNode = {
-  xpath: string;
-};
-
 export type StoredRange = {
-  startContainer: StoredNode;
+  startContainerXPath: string;
   startOffset: number;
-  endContainer: StoredNode;
+  endContainerXPath: string;
   endOffset: number;
 };
 
@@ -65,15 +61,11 @@ export interface Annotation<M> extends IAnnotation<M> {
 /**
  * the annotation exists on the dom. This can only be created / queried inside content_script
  */
-export interface DomAnnotation<M> extends Annotation<M> {
+export interface RenderableAnnotation<M> extends Annotation<M> {
   /*
    * the actual range for the annotation (highlight) on the DOM
    */
   range: Range;
-  /*
-   * the closet element for the annotation
-   */
-  scrollElement: Element;
 }
 
 /**
@@ -82,7 +74,6 @@ export interface DomAnnotation<M> extends Annotation<M> {
 export interface StoredAnnotation<S> extends IAnnotation<S> {
   createdAt: string;
   range: StoredRange;
-  scrollElement: StoredNode;
 }
 
 export type AnnoOptions<Memory, Storable> = {
@@ -94,15 +85,19 @@ export type AnnoOptions<Memory, Storable> = {
   cssClass?: string;
 };
 
-export type DomAnnotationQueryOptions = {
+export type RenderableAnnotationQueryOptions = {
   x: number;
   y: number;
 };
 
 export type AnnoContent<M> = {
-  annotate: () => Promise<DomAnnotation<M> | undefined>;
-  restore: () => Promise<DomAnnotation<M>[]>;
-  query: (options: DomAnnotationQueryOptions) => DomAnnotation<M>[];
+  annotate: () => Promise<RenderableAnnotation<M> | undefined>;
+  restore: () => Promise<
+    { valid: RenderableAnnotation<M>[]; invalid: Annotation<M>[] }
+  >;
+  query: (
+    options: RenderableAnnotationQueryOptions,
+  ) => RenderableAnnotation<M>[];
 };
 
 export type AnnoPopup<M> = {
@@ -118,10 +113,16 @@ export type Anno<M> = {
   popup: AnnoPopup<M>;
 };
 
+export type AnnoStoreContentGet<M> = {
+  valid: RenderableAnnotation<M>[];
+  recoverable: RenderableAnnotation<M>[];
+  unrecoverable: Annotation<M>[];
+};
+
 export type AnnoStore<M> = {
   content: {
-    get: () => Promise<DomAnnotation<M>[]>;
-    set: (annotation: DomAnnotation<M>) => Promise<void>;
+    get: () => Promise<AnnoStoreContentGet<M>>;
+    set: (annotation: RenderableAnnotation<M>) => Promise<void>;
   };
   popup: {
     get: () => Promise<Annotations<M>>;
@@ -132,21 +133,39 @@ export type AnnoStore<M> = {
   };
 };
 
+export type AnnoCodecDecodeReturnType<M> =
+  /*
+   * The annotation is restored and can be rendered on the DOM
+   */
+  | { kind: 'valid'; annotation: RenderableAnnotation<M> }
+  /*
+   * The annotation is invalid, but can be restored using text matching.
+   * And it can be rendered on the DOM.
+   */
+  | { kind: 'recoverable'; annotation: RenderableAnnotation<M> }
+  /*
+   * The annotation is invalid, cannot be restored using the text matching.
+   * Cannot be rendered on the DOM.
+   */
+  | { kind: 'unrecoverable'; annotation: Annotation<M> };
+
 export type AnnoCodec<M, S> = {
   /**
-   * encode the `DomAnnotation` to `StoredAnnotation`
+   * encode the `RenderableAnnotation` to `StoredAnnotation`
    */
-  encode: (annotation: DomAnnotation<M>) => StoredAnnotation<S>;
+  encode: (annotation: RenderableAnnotation<M>) => StoredAnnotation<S>;
+
+  /**
+   * decode the `StoredAnnotation` to `RenderableAnnotation`
+   */
+  decode: (
+    stored: StoredAnnotation<S>,
+  ) => AnnoCodecDecodeReturnType<M>;
 
   /**
    * decode the `StoredAnnotation` to `Annotation`
    */
-  decode: (stored: StoredAnnotation<S>) => Annotation<M>;
-
-  /**
-   * decode the `StoredAnnotation` to `DomAnnotation`
-   */
-  decodeDom: (stored: StoredAnnotation<S>) => DomAnnotation<M> | undefined;
+  decodeNonRenderable: (stored: StoredAnnotation<S>) => Annotation<M>;
 
   metadata: {
     encode: (m: M) => S;

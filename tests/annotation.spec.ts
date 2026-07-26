@@ -345,6 +345,11 @@ test('restore annotations should not crash if one of the annotations is invalid'
   await page.goto(urls[0]);
   // Highlight1 is still activated, but not Highlight2 here
   await expectedToBeAnnotated(page, expect, ['Highlight1']);
+
+  // Highlight2 should appear in the invalid annotations list
+  const invalidItems = page.locator('#invalid-annos li');
+  await expect(invalidItems).toHaveCount(1);
+  await expect(invalidItems.first()).toHaveText('Highlight2');
 });
 
 test('does not restore annotation when DOM text changes at same XPath', async ({ annotatedUrls, context }) => {
@@ -393,4 +398,53 @@ test('does not restore annotation when DOM text changes at same XPath', async ({
   // Only 'one' should be restored; 'two' was removed, so its XPath now
   // points to 'three', which must NOT be annotated.
   await expectedToBeAnnotated(page, expect, ['one']);
+
+  // 'two' should appear in the invalid annotations list
+  const invalidItems = page.locator('#invalid-annos li');
+  await expect(invalidItems).toHaveCount(1);
+  await expect(invalidItems.first()).toHaveText('two');
+});
+
+test('try to restore annotation when DOM text changes at different XPath', async ({ annotatedUrls, context }) => {
+  const page = await context.newPage();
+  const urls = await annotatedUrls(`
+  <html>
+    <body>
+      <p>one</p>
+      <p>two</p>
+    </body>
+  </html>
+`);
+
+  await page.goto(urls[0]);
+  await annotateText(page, (document) => {
+    const p = document.querySelectorAll('p')[0];
+    const range = document.createRange();
+    range.setStart(p.firstChild!, 0);
+    range.setEnd(p.firstChild!, 3);
+    return range;
+  });
+  await annotateText(page, (document) => {
+    const p = document.querySelectorAll('p')[1];
+    const range = document.createRange();
+    range.setStart(p.firstChild!, 0);
+    range.setEnd(p.firstChild!, 3);
+    return range;
+  });
+  await expectedToBeAnnotated(page, expect, ['one', 'two']);
+
+  // Overwrite the same URL with modified HTML: one and two are swapped
+  await annotatedUrls({
+    url: urls[0],
+    html: `
+  <html>
+    <body>
+      <p>two</p>
+      <p>one</p>
+    </body>
+  </html>
+`,
+  });
+  await page.reload();
+  await expectedToBeAnnotated(page, expect, ['one', 'two']);
 });

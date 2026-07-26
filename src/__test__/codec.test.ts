@@ -1,169 +1,114 @@
-import { beforeEach, describe, expect, it } from 'vitest';
+import { describe, expect, it } from 'vitest';
 import { createCodec } from '../codec';
-import type { AnnoOptions, DomAnnotation, StoredAnnotation } from '../types';
+import { RenderableAnnotation } from '../types';
+import { annoOptionsTest, annotate, TestMeta } from './utils';
 
-const options: AnnoOptions<string, string> = {
-  metadata: {
-    init: () => '',
-    encode: (s) => s.toUpperCase(),
-    decode: (s) => s.toLowerCase(),
-  },
-};
-
-function setupDom() {
-  document.body.innerHTML = '<div id="root"><p>hello world</p></div>';
-  const p = document.querySelector('p')!;
-  const textNode = p.firstChild as Text;
-  const range = document.createRange();
-  range.setStart(textNode, 0);
-  range.setEnd(textNode, 5);
-  return { p, textNode, range };
-}
-
-function makeAnnotation(): DomAnnotation<string> {
-  const { p, range } = setupDom();
-  return {
-    id: 'aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee',
-    version: '1.0.0',
-    text: 'hello',
-    originalUrl: 'https://example.com/page?utm_source=x',
-    normalizedUrl: 'https://example.com/page',
-    annotationUrl: 'https://example.com/page#anno=aaa',
-    createdAt: new Date('2024-01-01T00:00:00.000Z'),
-    range,
-    scrollElement: p,
-    metadata: 'hello',
-  };
-}
+const codec = createCodec(annoOptionsTest);
 
 describe('createCodec', () => {
-  const codec = createCodec(options);
-
-  beforeEach(() => {
-    document.body.innerHTML = '';
-  });
-
   describe('encode', () => {
-    it('converts DomAnnotation to StoredAnnotation', () => {
-      const annotation = makeAnnotation();
+    it('converts RenderableAnnotation to StoredAnnotation', () => {
+      document.body.innerHTML = '<p>hello world</p>';
+      const annotation = annotate('hello');
       const stored = codec.encode(annotation);
 
       expect(stored).toStrictEqual({
-        id: 'aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee',
+        id: annotation.id,
         version: '1.0.0',
         text: 'hello',
-        originalUrl: 'https://example.com/page?utm_source=x',
-        normalizedUrl: 'https://example.com/page',
-        annotationUrl: 'https://example.com/page#anno=aaa',
-        createdAt: '2024-01-01T00:00:00.000Z',
-        metadata: 'HELLO',
+        originalUrl: annotation.originalUrl,
+        normalizedUrl: annotation.normalizedUrl,
+        annotationUrl: annotation.annotationUrl,
+        createdAt: annotation.createdAt.toISOString(),
+        metadata: { note: 'init', score: '000' },
         range: {
-          startContainer: {
-            xpath: '/html[1]/body[1]/div[1]/p[1]/text()[1]',
-          },
+          startContainerXPath: '/html[1]/body[1]/p[1]/text()[1]',
           startOffset: 0,
-          endContainer: {
-            xpath: '/html[1]/body[1]/div[1]/p[1]/text()[1]',
-          },
+          endContainerXPath: '/html[1]/body[1]/p[1]/text()[1]',
           endOffset: 5,
         },
-        scrollElement: { xpath: '/html[1]/body[1]/div[1]/p[1]' },
+      });
+    });
+  });
+
+  describe('decodeNonRenderable', () => {
+    it('converts StoredAnnotation to Annotation', () => {
+      document.body.innerHTML = '<p>hello world</p>';
+      const annotation = annotate('hello');
+      const stored = codec.encode(annotation);
+      const decoded = codec.decodeNonRenderable(stored);
+
+      expect(decoded).toStrictEqual({
+        id: stored.id,
+        version: stored.version,
+        text: stored.text,
+        originalUrl: stored.originalUrl,
+        normalizedUrl: stored.normalizedUrl,
+        annotationUrl: stored.annotationUrl,
+        createdAt: new Date(stored.createdAt),
+        metadata: { note: 'init', score: 0 },
       });
     });
   });
 
   describe('decode', () => {
-    it('converts StoredAnnotation to Annotation', () => {
-      const stored: StoredAnnotation<string> = {
-        id: 'aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee',
-        version: '1.0.0',
-        text: 'hello',
-        originalUrl: 'https://example.com/page',
-        normalizedUrl: 'https://example.com/page',
-        annotationUrl: 'https://example.com/page#anno=aaa',
-        createdAt: '2024-01-01T00:00:00.000Z',
-        range: {
-          startContainer: { xpath: '/html[1]/body[1]/p[1]/text()[1]' },
-          startOffset: 0,
-          endContainer: { xpath: '/html[1]/body[1]/p[1]/text()[1]' },
-          endOffset: 5,
-        },
-        scrollElement: { xpath: '/html[1]/body[1]/p[1]' },
-        metadata: 'HELLO',
-      };
-
-      const annotation = codec.decode(stored);
-
-      expect(annotation).toStrictEqual({
-        id: 'aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee',
-        version: '1.0.0',
-        text: 'hello',
-        originalUrl: 'https://example.com/page',
-        normalizedUrl: 'https://example.com/page',
-        annotationUrl: 'https://example.com/page#anno=aaa',
-        createdAt: new Date('2024-01-01T00:00:00.000Z'),
-        metadata: 'hello',
-        range: stored.range,
-        scrollElement: stored.scrollElement,
-      });
-    });
-  });
-
-  describe('decodeDom', () => {
-    it('resolves XPaths to valid Range', () => {
-      const annotation = makeAnnotation();
+    it('returns valid for intact XPath with matching text', () => {
+      document.body.innerHTML = '<p>hello world</p>';
+      const annotation = annotate('hello');
       const stored = codec.encode(annotation);
-      const restored = codec.decodeDom(stored);
+      const decoded = codec.decode(stored);
 
-      expect(restored).toBeDefined();
-      expect(restored!.range.toString()).toBe('hello');
-      expect(restored!.scrollElement).toBe(annotation.scrollElement);
-      expect(restored!.metadata).toBe('hello');
-      expect(restored!.createdAt).toStrictEqual(
-        new Date('2024-01-01T00:00:00.000Z'),
+      expect(decoded.kind).toBe('valid');
+      const decodedAnnotation = decoded.annotation as RenderableAnnotation<
+        TestMeta
+      >;
+      expect(decodedAnnotation.range.toString()).toBe('hello');
+      expect(decodedAnnotation.metadata).toStrictEqual({
+        note: 'init',
+        score: 0,
+      });
+      expect(decoded.annotation.createdAt).toStrictEqual(
+        new Date(stored.createdAt),
       );
     });
 
-    describe('returns undefined when', () => {
-      it('startContainer xpath is invalid', () => {
-        const annotation = makeAnnotation();
-        const stored = codec.encode(annotation);
-        stored.range.startContainer.xpath = '/html[1]/body[1]/nonexistent[1]';
+    it('returns recoverable when XPath is stale but text exists', () => {
+      document.body.innerHTML = '<p>hello world</p>';
+      const annotation = annotate('hello');
+      const stored = codec.encode(annotation);
+      document.body.innerHTML = '<div>hello</div>';
+      const decoded = codec.decode(stored);
 
-        expect(codec.decodeDom(stored)).toBeUndefined();
-      });
+      expect(decoded.kind).toBe('recoverable');
+    });
 
-      it('endContainer xpath is invalid', () => {
-        const annotation = makeAnnotation();
-        const stored = codec.encode(annotation);
-        stored.range.endContainer.xpath = '/html[1]/body[1]/nonexistent[1]';
+    it('returns unrecoverable when XPath is stale and text is gone', () => {
+      document.body.innerHTML = '<p>hello world</p>';
+      const annotation = annotate('hello');
+      const stored = codec.encode(annotation);
+      document.body.innerHTML = '<div>goodbye</div>';
+      const decoded = codec.decode(stored);
 
-        expect(codec.decodeDom(stored)).toBeUndefined();
-      });
+      expect(decoded.kind).toBe('unrecoverable');
+    });
 
-      it('scrollElement xpath is invalid', () => {
-        const annotation = makeAnnotation();
-        const stored = codec.encode(annotation);
-        stored.scrollElement.xpath = '/html[1]/body[1]/nonexistent[1]';
+    it('returns unrecoverable when text does not match and cannot be found', () => {
+      document.body.innerHTML = '<p>hello world</p>';
+      const annotation = annotate('hello');
+      const stored = codec.encode(annotation);
+      document.body.querySelector('p')!.firstChild!.textContent = 'changed';
+      const decoded = codec.decode(stored);
 
-        expect(codec.decodeDom(stored)).toBeUndefined();
-      });
-
-      it('range resolves to collapsed', () => {
-        const annotation = makeAnnotation();
-        const stored = codec.encode(annotation);
-        stored.range.endOffset = stored.range.startOffset;
-
-        expect(codec.decodeDom(stored)).toBeUndefined();
-      });
+      expect(decoded.kind).toBe('unrecoverable');
     });
 
     it('throws when offset exceeds node length', () => {
-      const annotation = makeAnnotation();
+      document.body.innerHTML = '<p>hello world</p>';
+      const annotation = annotate('hello');
       const stored = codec.encode(annotation);
       stored.range.startOffset = 9999;
 
-      expect(() => codec.decodeDom(stored)).toThrow(DOMException);
+      expect(() => codec.decode(stored)).toThrow(DOMException);
     });
   });
 });

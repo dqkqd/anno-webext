@@ -1,59 +1,84 @@
+import { getRangeByText } from './finder';
 import { getNodeByXPath, getNodeXPath } from './location';
 import type {
   AnnoCodec,
+  AnnoCodecDecodeReturnType,
   AnnoOptions,
   Annotation,
-  DomAnnotation,
+  RenderableAnnotation,
   StoredAnnotation,
   StoredRange,
 } from './types';
+import { normalizeText } from './utils';
 
 export function createCodec<M, S>(options: AnnoOptions<M, S>): AnnoCodec<M, S> {
   const metadata = options.metadata;
+
+  function decodeNonRenderable(stored: StoredAnnotation<S>): Annotation<M> {
+    const { range, ...rest } = stored;
+    void range;
+    return {
+      ...rest,
+      createdAt: new Date(stored.createdAt),
+      metadata: metadata.decode(stored.metadata),
+    };
+  }
+
+  function encode(annotation: RenderableAnnotation<M>): StoredAnnotation<S> {
+    return {
+      ...annotation,
+      createdAt: annotation.createdAt.toISOString(),
+      range: {
+        startContainerXPath: getNodeXPath(annotation.range.startContainer),
+        startOffset: annotation.range.startOffset,
+        endContainerXPath: getNodeXPath(annotation.range.endContainer),
+        endOffset: annotation.range.endOffset,
+      },
+      metadata: metadata.encode(annotation.metadata),
+    };
+  }
+
+  function decode(
+    stored: StoredAnnotation<S>,
+  ): AnnoCodecDecodeReturnType<M> {
+    const annotation = decodeNonRenderable(stored);
+    const range = decodeRange(stored.range);
+
+    // a range is valid if and only if its string match the stored text.
+    const isValid = range !== undefined
+      && normalizeText(range.toString())
+        === normalizeText(stored.text);
+
+    if (isValid) {
+      return {
+        kind: 'valid',
+        annotation: { ...annotation, range },
+      };
+    }
+
+    // The annotation is not valid, which means the DOM xpath is stale and it now point to a different node, or not exist anymore.
+    // We try to search by the stored text first, to get the matching node first.
+    // TODO: should we search the whole body?
+    const recoverableRange = getRangeByText(document.body, stored.text);
+    if (recoverableRange) {
+      return {
+        kind: 'recoverable',
+        annotation: { ...annotation, range: recoverableRange },
+      };
+    }
+    // The range is invalid, and the text itself is unrecoverable, return the unrecoverable annotation
+    // and let caller decide
+    return {
+      kind: 'unrecoverable',
+      annotation,
+    };
+  }
+
   return {
     metadata,
-    encode: (annotation: DomAnnotation<M>): StoredAnnotation<S> => {
-      return {
-        ...annotation,
-        createdAt: annotation.createdAt.toISOString(),
-        range: {
-          startContainer: getNodeXPath(annotation.range.startContainer),
-          startOffset: annotation.range.startOffset,
-          endContainer: getNodeXPath(annotation.range.endContainer),
-          endOffset: annotation.range.endOffset,
-        },
-        scrollElement: getNodeXPath(annotation.scrollElement),
-        metadata: metadata.encode(annotation.metadata),
-      };
-    },
-
-    decode: (stored: StoredAnnotation<S>): Annotation<M> => {
-      return {
-        ...stored,
-        createdAt: new Date(stored.createdAt),
-        metadata: metadata.decode(stored.metadata),
-      };
-    },
-
-    decodeDom: (stored: StoredAnnotation<S>): DomAnnotation<M> | undefined => {
-      const range = decodeRange(stored.range);
-      if (!range) {
-        return;
-      }
-      const scrollElement = getNodeByXPath(stored.scrollElement);
-      if (!scrollElement) {
-        return;
-      }
-
-      return {
-        ...stored,
-        range,
-        createdAt: new Date(stored.createdAt),
-        // scroll element (if exist) must be `Element`
-        scrollElement: scrollElement as Element,
-        metadata: metadata.decode(stored.metadata),
-      };
-    },
+    encode,
+    decode,
+    decodeNonRenderable,
   };
 }
 
@@ -63,11 +88,11 @@ export function createCodec<M, S>(options: AnnoOptions<M, S>): AnnoCodec<M, S> {
  */
 function decodeRange(r: StoredRange): Range | undefined {
   const range = document.createRange();
-  const startNode = getNodeByXPath(r.startContainer);
+  const startNode = getNodeByXPath(r.startContainerXPath);
   if (!startNode) {
     return;
   }
-  const endNode = getNodeByXPath(r.endContainer);
+  const endNode = getNodeByXPath(r.endContainerXPath);
   if (!endNode) {
     return;
   }

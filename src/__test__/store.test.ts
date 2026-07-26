@@ -1,87 +1,172 @@
 import { beforeAll, beforeEach, describe, expect, it } from 'vitest';
 import { createStore } from '../store';
-import type { UUID } from '../types';
 import {
   annoOptionsTest,
-  annotateText,
+  annotate,
   resetStore,
   setupStorageMock,
-  type StoreTestMeta,
+  type TestMeta,
 } from './utils';
+
+const store = createStore(annoOptionsTest);
 
 beforeAll(() => setupStorageMock());
 beforeEach(() => resetStore());
 
 describe('content', () => {
   it('simple get and set', async () => {
-    const a1 = annotateText('hello world1');
-    const a2 = annotateText('hello world2');
-    const store = createStore(annoOptionsTest);
+    document.body.innerHTML = '<p>hello world1</p><p>hello world2</p>';
+    const a1 = annotate('hello world1');
+    const a2 = annotate('hello world2');
+
     await store.content.set(a1);
     await store.content.set(a2);
+
     const results = await store.content.get();
-    expect(results).toStrictEqual([a1, a2]);
+    expect(results).toStrictEqual({
+      valid: [a1, a2],
+      recoverable: [],
+      unrecoverable: [],
+    });
   });
 
   it('returns empty array when nothing stored for current URL', async () => {
-    const store = createStore(annoOptionsTest);
     const results = await store.content.get();
-    expect(results).toEqual([]);
+    expect(results).toStrictEqual({
+      valid: [],
+      recoverable: [],
+      unrecoverable: [],
+    });
   });
 
   describe('filter out', () => {
-    it('annotations whose DOM nodes were removed', async () => {
-      const store = createStore(annoOptionsTest);
-      const annotation = annotateText('hello world');
+    it('recovers annotations when DOM is restructured', async () => {
+      document.body.innerHTML = '<p>hello world</p>';
+      const annotation = annotate('hello world');
       await store.content.set(annotation);
-      expect(await store.content.get()).toHaveLength(1);
+
+      document.body.innerHTML = '<div>hello world</div>';
+      const results = await store.content.get();
+
+      expect(results).toStrictEqual({
+        valid: [],
+        recoverable: [{
+          id: annotation.id,
+          version: annotation.version,
+          text: 'hello world',
+          originalUrl: annotation.originalUrl,
+          normalizedUrl: annotation.normalizedUrl,
+          annotationUrl: annotation.annotationUrl,
+          createdAt: annotation.createdAt,
+          range: expect.any(Range) as Range,
+          metadata: { note: 'init', score: 0 },
+        }],
+        unrecoverable: [],
+      });
+    });
+
+    it('annotations whose DOM nodes were removed', async () => {
+      document.body.innerHTML = '<p>hello world</p>';
+      const annotation = annotate('hello world');
+      await store.content.set(annotation);
+
       document.body.innerHTML = '';
-      expect(await store.content.get()).toHaveLength(0);
+      const results = await store.content.get();
+      expect(results).toStrictEqual({
+        valid: [],
+        recoverable: [],
+        unrecoverable: [
+          {
+            id: annotation.id,
+            version: annotation.version,
+            text: annotation.text,
+            originalUrl: annotation.originalUrl,
+            normalizedUrl: annotation.normalizedUrl,
+            annotationUrl: annotation.annotationUrl,
+            createdAt: annotation.createdAt,
+            metadata: annotation.metadata,
+          },
+        ],
+      });
     });
 
     it('annotations whose text does not match range', async () => {
-      const store = createStore(annoOptionsTest);
-      const annotation = annotateText('hello world');
+      document.body.innerHTML = '<p>hello world</p>';
+      const annotation = annotate('hello world');
       await store.content.set(annotation);
-      expect(await store.content.get()).toHaveLength(1);
-      annotation.scrollElement.firstChild!.textContent = 'changed text';
+
+      expect(await store.content.get()).toStrictEqual({
+        valid: [annotation],
+        recoverable: [],
+        unrecoverable: [],
+      });
+
+      (document.querySelector('p')!.firstChild as Text).textContent =
+        'changed text';
       const results = await store.content.get();
-      expect(results).toEqual([]);
+      expect(results).toStrictEqual({
+        valid: [],
+        recoverable: [],
+        unrecoverable: [{
+          id: annotation.id,
+          version: annotation.version,
+          text: annotation.text,
+          originalUrl: annotation.originalUrl,
+          normalizedUrl: annotation.normalizedUrl,
+          annotationUrl: annotation.annotationUrl,
+          createdAt: annotation.createdAt,
+          metadata: annotation.metadata,
+        }],
+      });
     });
 
     it('does not return annotations from other URLs', async () => {
-      const store = createStore(annoOptionsTest);
-      const a1 = annotateText('hello world');
+      document.body.innerHTML = '<p>hello world</p>';
+      const a1 = annotate('hello world');
       await store.content.set(a1);
-      const a2 = annotateText('hello world');
+
+      document.body.innerHTML = '<p>hello world</p>';
+      const a2 = annotate('hello world');
       a2.normalizedUrl = 'https://other.com/page';
       await store.content.set(a2);
+
       const results = await store.content.get();
-      expect(results).toStrictEqual([a1]);
+      expect(results).toStrictEqual({
+        valid: [a1],
+        recoverable: [],
+        unrecoverable: [],
+      });
     });
   });
 
-  it('throws when annotation with same ID already exists', async () => {
-    const store = createStore(annoOptionsTest);
-    const annotation = annotateText('hello world');
+  it('update annotation if it is already exist', async () => {
+    document.body.innerHTML = '<p>hello world</p>';
+    const annotation = annotate('hello world');
     await store.content.set(annotation);
-    await expect(store.content.set(annotation)).rejects.toThrow(annotation.id);
+
+    annotation.metadata.note = 'new';
+    await store.content.set(annotation);
+
+    const result = await store.content.get();
+    expect(result.valid[0].metadata).toStrictEqual({ note: 'new', score: 0 });
   });
 });
 
 describe('popup', () => {
   it('returns empty object when nothing stored', async () => {
-    const store = createStore(annoOptionsTest);
     const results = await store.popup.get();
     expect(results).toEqual({});
   });
 
   it('returns annotations grouped by URL', async () => {
-    const store = createStore(annoOptionsTest);
-    const a1 = annotateText('hello world');
+    document.body.innerHTML = '<p>hello world</p>';
+    const a1 = annotate('hello world');
     a1.normalizedUrl = 'https://a.com/page';
-    const a2 = annotateText('hello world');
+
+    document.body.innerHTML = '<p>hello world</p>';
+    const a2 = annotate('hello world');
     a2.normalizedUrl = 'https://b.com/page';
+
     await store.content.set(a1);
     await store.content.set(a2);
     const results = await store.popup.get();
@@ -93,9 +178,9 @@ describe('popup', () => {
   });
 
   it('returns multiple annotations per URL', async () => {
-    const store = createStore(annoOptionsTest);
-    const a1 = annotateText('hello world');
-    const a2 = annotateText('hello world');
+    document.body.innerHTML = '<p>hello world</p>';
+    const a1 = annotate('hello world');
+    const a2 = annotate('hello world');
     await store.content.set(a1);
     await store.content.set(a2);
     const results = await store.popup.get();
@@ -103,11 +188,11 @@ describe('popup', () => {
   });
 
   it('updates metadata and returns updated annotation', async () => {
-    const store = createStore(annoOptionsTest);
-    const annotation = annotateText('hello world');
+    document.body.innerHTML = '<p>hello world</p>';
+    const annotation = annotate('hello world');
     await store.content.set(annotation);
 
-    function updateFn(m: StoreTestMeta) {
+    function updateFn(m: TestMeta) {
       return { note: m.note + ' updated', score: m.score + 1 };
     }
 
@@ -121,8 +206,7 @@ describe('popup', () => {
   });
 
   it('updates metadata throws when annotation ID not found', async () => {
-    const store = createStore(annoOptionsTest);
-    const fakeId = '00000000-0000-0000-0000-000000000000' as UUID;
+    const fakeId = '00000000-0000-0000-0000-000000000000';
     await expect(
       store.popup.updateMetadata(fakeId, (m) => m),
     ).rejects.toThrow(fakeId);

@@ -6,6 +6,6 @@ export type {
   AnnoOptions,
   Annotation,
   Annotations,
-  DomAnnotation,
-  DomAnnotationQueryOptions,
+  RenderableAnnotation,
+  RenderableAnnotationQueryOptions,
 } from './types';

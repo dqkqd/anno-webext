@@ -1,13 +1,14 @@
+import { UUID } from 'crypto';
 import { createCodec } from './codec';
 import type {
   AnnoCodec,
   AnnoOptions,
   AnnoStore,
+  AnnoStoreContentGet,
   Annotation,
   Annotations,
-  DomAnnotation,
+  RenderableAnnotation,
   StoredAnnotation,
-  UUID,
 } from './types';
 import { normalizeUrl } from './url';
 
@@ -54,36 +55,51 @@ const browserStorage = {
   },
 };
 
-export function normalizeText(text: string): string {
-  return text.replace(/\s+/g, ' ').trim();
-}
-
 async function contentGet<M, S>(
   codec: AnnoCodec<M, S>,
-): Promise<DomAnnotation<M>[]> {
+): Promise<AnnoStoreContentGet<M>> {
   const url = normalizeUrl(location.href);
   const storedAnnotations = await browserStorage.getByUrl<S>(url);
-  const annotations = storedAnnotations.map((s) => codec.decodeDom(s));
-  // TODO: handle missing annotation (This is because range is missing)
-  // TODO: handle deleted / invalid annotation!
-  const validAnnotations = annotations.filter((a) => a !== undefined)
-    .filter((
-      a,
-    ) => normalizeText(a.range.toString()) === normalizeText(a.text));
-  return validAnnotations;
+
+  const valid: RenderableAnnotation<M>[] = [];
+  const recoverable: RenderableAnnotation<M>[] = [];
+  const unrecoverable: Annotation<M>[] = [];
+
+  for (const stored of storedAnnotations) {
+    const decoded = codec.decode(stored);
+    switch (decoded.kind) {
+      case 'valid': {
+        valid.push(decoded.annotation);
+        break;
+      }
+      case 'recoverable': {
+        recoverable.push(decoded.annotation);
+        break;
+      }
+      case 'unrecoverable': {
+        unrecoverable.push(decoded.annotation);
+        break;
+      }
+    }
+  }
+
+  return { valid, recoverable, unrecoverable };
 }
 
 async function contentSet<M, S>(
-  annotation: DomAnnotation<M>,
+  annotation: RenderableAnnotation<M>,
   codec: AnnoCodec<M, S>,
 ): Promise<void> {
   const storedAnnotations = await browserStorage.get<S>();
   const annotationsInUrl = storedAnnotations[annotation.normalizedUrl] ?? [];
-  if (annotationsInUrl.find((s) => s.id == annotation.id)) {
-    throw Error(`An annotation with id ${annotation.id} already exists`);
-  }
+  const index = annotationsInUrl.findIndex((s) => s.id == annotation.id);
+
   const stored = codec.encode(annotation);
-  annotationsInUrl.push(stored);
+  if (index === -1) {
+    annotationsInUrl.push(stored);
+  } else {
+    annotationsInUrl[index] = stored;
+  }
 
   storedAnnotations[annotation.normalizedUrl] = annotationsInUrl;
   await browserStorage.set(storedAnnotations);
@@ -96,7 +112,7 @@ async function popupGet<M, S>(
   const annotations = Object.fromEntries(
     Object.entries(stored).map(([url, storedAnnotations]) => [
       url,
-      storedAnnotations.map((s) => codec.decode(s)),
+      storedAnnotations.map((s) => codec.decodeNonRenderable(s)),
     ]),
   );
   return annotations;
@@ -130,5 +146,5 @@ async function popupUpdateMetadata<M, S>(
   storedAnnotations[stored.normalizedUrl][storedIndex] = stored;
   await browserStorage.set(storedAnnotations);
 
-  return codec.decode(stored);
+  return codec.decodeNonRenderable(stored);
 }

@@ -1,11 +1,12 @@
 import { vi } from 'vitest';
 import { createAnnotationFromSelection } from '../anno';
+import { getRangeByText } from '../finder';
 import type { StoredAnnotations } from '../store';
-import type { AnnoOptions, DomAnnotation } from '../types';
+import type { AnnoOptions, RenderableAnnotation } from '../types';
 
-export type StoreTestMeta = { note: string; score: number };
-export type StoreTestStorable = { note: string; score: string };
-export const annoOptionsTest: AnnoOptions<StoreTestMeta, StoreTestStorable> = {
+export type TestMeta = { note: string; score: number };
+export type TestMetaStorable = { note: string; score: string };
+export const annoOptionsTest: AnnoOptions<TestMeta, TestMetaStorable> = {
   metadata: {
     init: () => ({ note: 'init', score: 0 }),
     encode: (m) => ({ note: m.note, score: String(m.score).padStart(3, '0') }),
@@ -13,33 +14,18 @@ export const annoOptionsTest: AnnoOptions<StoreTestMeta, StoreTestStorable> = {
   },
 };
 
-let selectCounter = 0;
-
-export function selectText(text: string): Selection {
-  const id = `st${selectCounter++}`;
-  document.body.insertAdjacentHTML(
-    'beforeend',
-    `<div id="${id}">${text}</div>`,
-  );
-  const textNode = document.querySelector(`#${id}`)!.firstChild! as Text;
-  const range = document.createRange();
-  range.setStart(textNode, 0);
-  range.setEnd(textNode, text.length);
-
+export function annotate(text: string): RenderableAnnotation<TestMeta> {
+  const range = getRangeByText(document.body, text)!;
   const selection = window.getSelection()!;
   selection.removeAllRanges();
   selection.addRange(range);
-  return selection;
-}
-
-export function annotateText(text: string): DomAnnotation<StoreTestMeta> {
   return createAnnotationFromSelection(
-    selectText(text),
+    selection,
     annoOptionsTest.metadata.init,
   )!;
 }
 
-let stubStorage: StoredAnnotations<StoreTestStorable> = {};
+let stubStorage: StoredAnnotations<TestMetaStorable> = {};
 
 export function setupStorageMock() {
   vi.stubGlobal('chrome', {
@@ -49,7 +35,7 @@ export function setupStorageMock() {
         set: vi.fn(
           (
             { annotations }: {
-              annotations: StoredAnnotations<StoreTestStorable>;
+              annotations: StoredAnnotations<TestMetaStorable>;
             },
           ) => {
             stubStorage = annotations;
@@ -64,5 +50,4 @@ export function setupStorageMock() {
 
 export function resetStore() {
   stubStorage = {};
-  document.body.innerHTML = '';
 }

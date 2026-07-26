@@ -1,4 +1,4 @@
-import { UUID } from './types';
+import { UUID } from 'crypto';
 
 // normalizeUrl from https://github.com/obsidianmd/obsidian-clipper/
 const EPHEMERAL_PARAMS = new Set([

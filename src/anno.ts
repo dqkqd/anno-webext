@@ -3,26 +3,28 @@ import {
   createHighlightRegistry,
 } from './highlight';
 import { rtree } from './rtree';
-import { createStore, normalizeText } from './store';
+import { createStore } from './store';
 import type {
   Anno,
   AnnoContent,
   AnnoOptions,
   AnnoStore,
-  DomAnnotation,
+  Annotation,
+  RenderableAnnotation,
 } from './types';
 import {
   createAnnotationUrl,
   getAnnotationIdFromUrl,
   normalizeUrl,
 } from './url';
+import { getScrollElement, normalizeText } from './utils';
 
 export function createAnno<M, S>(options: AnnoOptions<M, S>): Anno<M> {
   const store = createStore(options);
   const highlightRegistry = createHighlightRegistry(options.cssClass);
 
   const content: AnnoContent<M> = {
-    annotate: async (): Promise<DomAnnotation<M> | undefined> => {
+    annotate: async (): Promise<RenderableAnnotation<M> | undefined> => {
       const annotation = annotate(options.metadata.init, highlightRegistry);
       if (!annotation) {
         return;
@@ -30,7 +32,7 @@ export function createAnno<M, S>(options: AnnoOptions<M, S>): Anno<M> {
       await store.content.set(annotation);
       return annotation;
     },
-    restore: async (): Promise<DomAnnotation<M>[]> => {
+    restore: async () => {
       return await restoreAnnotations(store, highlightRegistry);
     },
     query: rtree.query,
@@ -52,7 +54,7 @@ const STORE_FORMAT_VERSION = chrome.runtime.getManifest().version;
 function annotate<M>(
   createMetadata: () => M,
   highlightRegistry: AnnoHighlightRegistry,
-): DomAnnotation<M> | undefined {
+): RenderableAnnotation<M> | undefined {
   const selection = window.getSelection();
   if (!selection) {
     return;
@@ -73,22 +75,32 @@ function annotate<M>(
 async function restoreAnnotations<M>(
   store: AnnoStore<M>,
   highlightRegistry: AnnoHighlightRegistry,
-): Promise<DomAnnotation<M>[]> {
+): Promise<{
+  valid: RenderableAnnotation<M>[];
+  invalid: Annotation<M>[];
+}> {
   // clear remaining inmemory annotations
   highlightRegistry.clear();
   rtree.clear();
 
-  const annotations = await store.content.get();
-  for (const annotation of annotations) {
+  const { valid, recoverable, unrecoverable } = await store.content.get();
+  // recover the recoverable
+  for (const annotation of recoverable) {
+    await store.content.set(annotation);
+  }
+  valid.push(...recoverable);
+
+  for (const annotation of valid) {
     highlightRegistry.set(annotation);
     rtree.record(annotation);
   }
-  scrollToAnnotation(annotations);
-  return annotations;
+  scrollToAnnotation(valid);
+
+  return { valid, invalid: unrecoverable };
 }
 
 function scrollToAnnotation<M>(
-  annotations: DomAnnotation<M>[],
+  annotations: RenderableAnnotation<M>[],
 ) {
   const annotationId = getAnnotationIdFromUrl();
   if (!annotationId) {
@@ -97,7 +109,8 @@ function scrollToAnnotation<M>(
 
   const annotation = annotations.find((a) => a.id === annotationId);
   if (annotation) {
-    scrollToElement(annotation.scrollElement);
+    const scrollElement = getScrollElement(annotation.range);
+    scrollToElement(scrollElement);
   }
 }
 
@@ -112,8 +125,10 @@ function scrollToElement(element: Element): void {
 export function createAnnotationFromSelection<M>(
   selection: Selection,
   createMetadata: () => M,
-): DomAnnotation<M> | undefined {
+): RenderableAnnotation<M> | undefined {
   const range = selection.getRangeAt(0);
+  // TODO: user can select backward and the range still exist right?
+  // Might need a test for this
   if (range.collapsed) {
     return;
   }
@@ -122,13 +137,6 @@ export function createAnnotationFromSelection<M>(
   const originalUrl = location.href;
   const normalizedUrl = normalizeUrl(originalUrl);
   const annotationUrl = createAnnotationUrl(normalizedUrl, id);
-
-  // Add scroll element to the annotation.
-  // This must be an `Element`, which means if we are selecting a text node,
-  // then this should be its parent.
-  const scrollElement = range.startContainer.nodeType === Node.ELEMENT_NODE
-    ? (range.startContainer as Element)
-    : range.startContainer.parentElement!;
 
   return {
     id,
@@ -139,7 +147,6 @@ export function createAnnotationFromSelection<M>(
     annotationUrl,
     createdAt: new Date(),
     range,
-    scrollElement,
     metadata: createMetadata(),
   };
 }
