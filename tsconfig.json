@@ -4,7 +4,7 @@
     "tsBuildInfoFile": "./node_modules/.tmp/tsconfig.app.tsbuildinfo",
     "target": "es2023",
     "module": "esnext",
-    "types": ["vite/client", "chrome"],
+    "types": ["vite/client", "chrome", "node"],
     "noEmit": true,
     "allowJs": true,
     "checkJs": true,

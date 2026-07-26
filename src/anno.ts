@@ -1,4 +1,3 @@
-import { normalizeText } from './finder';
 import {
   type AnnoHighlightRegistry,
   createHighlightRegistry,
@@ -18,6 +17,7 @@ import {
   getAnnotationIdFromUrl,
   normalizeUrl,
 } from './url';
+import { normalizeText } from './utils';
 import { getScrollElement } from './utils';
 
 export function createAnno<M, S>(options: AnnoOptions<M, S>): Anno<M> {

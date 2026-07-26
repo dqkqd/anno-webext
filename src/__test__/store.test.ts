@@ -77,13 +77,14 @@ describe('content', () => {
         recoverable: [],
         unrecoverable: [
           {
-            ...annotation,
-            range: {
-              endContainerXPath: '/html[1]/body[1]/p[1]/text()[1]',
-              endOffset: 11,
-              startContainerXPath: '/html[1]/body[1]/p[1]/text()[1]',
-              startOffset: 0,
-            },
+            id: annotation.id,
+            version: annotation.version,
+            text: annotation.text,
+            originalUrl: annotation.originalUrl,
+            normalizedUrl: annotation.normalizedUrl,
+            annotationUrl: annotation.annotationUrl,
+            createdAt: annotation.createdAt,
+            metadata: annotation.metadata,
           },
         ],
       });
@@ -100,18 +101,21 @@ describe('content', () => {
         unrecoverable: [],
       });
 
+      (document.querySelector('p')!.firstChild as Text).textContent =
+        'changed text';
       const results = await store.content.get();
       expect(results).toStrictEqual({
         valid: [],
         recoverable: [],
         unrecoverable: [{
-          ...annotation,
-          range: {
-            startContainerXPath: '/html[1]/body[1]/p[1]/text()[1]',
-            startOffset: 0,
-            endContainerXPath: '/html[1]/body[1]/p[1]/text()[1]',
-            endOffset: 11,
-          },
+          id: annotation.id,
+          version: annotation.version,
+          text: annotation.text,
+          originalUrl: annotation.originalUrl,
+          normalizedUrl: annotation.normalizedUrl,
+          annotationUrl: annotation.annotationUrl,
+          createdAt: annotation.createdAt,
+          metadata: annotation.metadata,
         }],
       });
     });

@@ -1,5 +1,5 @@
+import { UUID } from 'crypto';
 import { createCodec } from './codec';
-import { getRangeByText, normalizeText } from './finder';
 import type {
   AnnoCodec,
   AnnoOptions,

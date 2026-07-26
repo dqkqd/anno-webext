@@ -15,8 +15,10 @@ export function createCodec<M, S>(options: AnnoOptions<M, S>): AnnoCodec<M, S> {
   const metadata = options.metadata;
 
   function decodeNonRenderable(stored: StoredAnnotation<S>): Annotation<M> {
+    const { range, ...rest } = stored;
+    void range;
     return {
-      ...stored,
+      ...rest,
       createdAt: new Date(stored.createdAt),
       metadata: metadata.decode(stored.metadata),
     };

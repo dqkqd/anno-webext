@@ -30,7 +30,7 @@ describe('createCodec', () => {
     });
   });
 
-  describe('decode', () => {
+  describe('decodeNonRenderable', () => {
     it('converts StoredAnnotation to Annotation', () => {
       document.body.innerHTML = '<p>hello world</p>';
       const annotation = annotate('hello');
@@ -38,55 +38,67 @@ describe('createCodec', () => {
       const decoded = codec.decodeNonRenderable(stored);
 
       expect(decoded).toStrictEqual({
-        ...stored,
+        id: stored.id,
+        version: stored.version,
+        text: stored.text,
+        originalUrl: stored.originalUrl,
+        normalizedUrl: stored.normalizedUrl,
+        annotationUrl: stored.annotationUrl,
         createdAt: new Date(stored.createdAt),
         metadata: { note: 'init', score: 0 },
       });
     });
   });
 
-  describe('decodeRenderable', () => {
-    it('resolves XPaths to valid Range', () => {
+  describe('decode', () => {
+    it('returns valid for intact XPath with matching text', () => {
       document.body.innerHTML = '<p>hello world</p>';
       const annotation = annotate('hello');
       const stored = codec.encode(annotation);
-      const restored = codec.decode(stored);
+      const decoded = codec.decode(stored);
 
-      expect(restored).toBeDefined();
-      expect(restored.range.toString()).toBe('hello');
-      expect(restored.metadata).toStrictEqual({ note: 'init', score: 0 });
-      expect(restored.createdAt).toStrictEqual(
+      expect(decoded.kind).toBe('valid');
+      if (decoded.kind !== 'valid') {
+        return;
+      }
+      expect(decoded.annotation.range.toString()).toBe('hello');
+      expect(decoded.annotation.metadata).toStrictEqual({
+        note: 'init',
+        score: 0,
+      });
+      expect(decoded.annotation.createdAt).toStrictEqual(
         new Date(stored.createdAt),
       );
     });
 
-    describe('returns undefined when', () => {
-      it('startContainer xpath is invalid', () => {
-        document.body.innerHTML = '<p>hello world</p>';
-        const annotation = annotate('hello');
-        const stored = codec.encode(annotation);
-        stored.range.startContainerXPath = '/html[1]/body[1]/nonexistent[1]';
+    it('returns recoverable when XPath is stale but text exists', () => {
+      document.body.innerHTML = '<p>hello world</p>';
+      const annotation = annotate('hello');
+      const stored = codec.encode(annotation);
+      document.body.innerHTML = '<div>hello</div>';
+      const decoded = codec.decode(stored);
 
-        expect(codec.decode(stored)).toBeUndefined();
-      });
+      expect(decoded.kind).toBe('recoverable');
+    });
 
-      it('endContainer xpath is invalid', () => {
-        document.body.innerHTML = '<p>hello world</p>';
-        const annotation = annotate('hello');
-        const stored = codec.encode(annotation);
-        stored.range.endContainerXPath = '/html[1]/body[1]/nonexistent[1]';
+    it('returns unrecoverable when XPath is stale and text is gone', () => {
+      document.body.innerHTML = '<p>hello world</p>';
+      const annotation = annotate('hello');
+      const stored = codec.encode(annotation);
+      document.body.innerHTML = '<div>goodbye</div>';
+      const decoded = codec.decode(stored);
 
-        expect(codec.decode(stored)).toBeUndefined();
-      });
+      expect(decoded.kind).toBe('unrecoverable');
+    });
 
-      it('range resolves to collapsed', () => {
-        document.body.innerHTML = '<p>hello world</p>';
-        const annotation = annotate('hello');
-        const stored = codec.encode(annotation);
-        stored.range.endOffset = stored.range.startOffset;
+    it('returns unrecoverable when text does not match and cannot be found', () => {
+      document.body.innerHTML = '<p>hello world</p>';
+      const annotation = annotate('hello');
+      const stored = codec.encode(annotation);
+      document.body.querySelector('p')!.firstChild!.textContent = 'changed';
+      const decoded = codec.decode(stored);
 
-        expect(codec.decode(stored)).toBeUndefined();
-      });
+      expect(decoded.kind).toBe('unrecoverable');
     });
 
     it('throws when offset exceeds node length', () => {
