@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it } from 'vitest';
 import { createCodec } from '../codec';
-import type { AnnoOptions, DomAnnotation, StoredAnnotation } from '../types';
+import type { AnnoOptions, RenderableAnnotation, StoredAnnotation } from '../types';
 
 const options: AnnoOptions<string, string> = {
   metadata: {
@@ -20,7 +20,7 @@ function setupDom() {
   return { p, textNode, range };
 }
 
-function makeAnnotation(): DomAnnotation<string> {
+function makeAnnotation(): RenderableAnnotation<string> {
   const { p, range } = setupDom();
   return {
     id: 'aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee',

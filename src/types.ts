@@ -62,7 +62,7 @@ export interface Annotation<M> extends IAnnotation<M> {
 /**
  * the annotation exists on the dom. This can only be created / queried inside content_script
  */
-export interface DomAnnotation<M> extends Annotation<M> {
+export interface RenderableAnnotation<M> extends Annotation<M> {
   /*
    * the actual range for the annotation (highlight) on the DOM
    */
@@ -97,11 +97,11 @@ export type DomAnnotationQueryOptions = {
 };
 
 export type AnnoContent<M> = {
-  annotate: () => Promise<DomAnnotation<M> | undefined>;
+  annotate: () => Promise<RenderableAnnotation<M> | undefined>;
   restore: () => Promise<
-    { valid: DomAnnotation<M>[]; invalid: Annotation<M>[] }
+    { valid: RenderableAnnotation<M>[]; invalid: Annotation<M>[] }
   >;
-  query: (options: DomAnnotationQueryOptions) => DomAnnotation<M>[];
+  query: (options: DomAnnotationQueryOptions) => RenderableAnnotation<M>[];
 };
 
 export type AnnoPopup<M> = {
@@ -118,15 +118,15 @@ export type Anno<M> = {
 };
 
 export type AnnoStoreContentGet<M> = {
-  valid: DomAnnotation<M>[];
-  recoverable: DomAnnotation<M>[];
+  valid: RenderableAnnotation<M>[];
+  recoverable: RenderableAnnotation<M>[];
   unrecoverable: Annotation<M>[];
 };
 
 export type AnnoStore<M> = {
   content: {
     get: () => Promise<AnnoStoreContentGet<M>>;
-    set: (annotation: DomAnnotation<M>) => Promise<void>;
+    set: (annotation: RenderableAnnotation<M>) => Promise<void>;
   };
   popup: {
     get: () => Promise<Annotations<M>>;
@@ -141,7 +141,7 @@ export type AnnoCodec<M, S> = {
   /**
    * encode the `DomAnnotation` to `StoredAnnotation`
    */
-  encode: (annotation: DomAnnotation<M>) => StoredAnnotation<S>;
+  encode: (annotation: RenderableAnnotation<M>) => StoredAnnotation<S>;
 
   /**
    * decode the `StoredAnnotation` to `Annotation`
@@ -151,7 +151,7 @@ export type AnnoCodec<M, S> = {
   /**
    * decode the `StoredAnnotation` to `DomAnnotation`
    */
-  decodeDom: (stored: StoredAnnotation<S>) => DomAnnotation<M> | undefined;
+  decodeDom: (stored: StoredAnnotation<S>) => RenderableAnnotation<M> | undefined;
 
   metadata: {
     encode: (m: M) => S;

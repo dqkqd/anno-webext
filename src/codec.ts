@@ -3,7 +3,7 @@ import type {
   AnnoCodec,
   AnnoOptions,
   Annotation,
-  DomAnnotation,
+  RenderableAnnotation,
   StoredAnnotation,
   StoredRange,
 } from './types';
@@ -12,7 +12,7 @@ export function createCodec<M, S>(options: AnnoOptions<M, S>): AnnoCodec<M, S> {
   const metadata = options.metadata;
   return {
     metadata,
-    encode: (annotation: DomAnnotation<M>): StoredAnnotation<S> => {
+    encode: (annotation: RenderableAnnotation<M>): StoredAnnotation<S> => {
       return {
         ...annotation,
         createdAt: annotation.createdAt.toISOString(),
@@ -35,7 +35,9 @@ export function createCodec<M, S>(options: AnnoOptions<M, S>): AnnoCodec<M, S> {
       };
     },
 
-    decodeDom: (stored: StoredAnnotation<S>): DomAnnotation<M> | undefined => {
+    decodeDom: (
+      stored: StoredAnnotation<S>,
+    ): RenderableAnnotation<M> | undefined => {
       // TODO: this should return 3 cases: valid, recoverable, unrecorverable!
       // so that outer can easily reuse!
       const range = decodeRange(stored.range);

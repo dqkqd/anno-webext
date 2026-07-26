@@ -7,7 +7,7 @@ import type {
   AnnoStoreContentGet,
   Annotation,
   Annotations,
-  DomAnnotation,
+  RenderableAnnotation,
   StoredAnnotation,
   UUID,
 } from './types';
@@ -62,8 +62,8 @@ async function contentGet<M, S>(
   const url = normalizeUrl(location.href);
   const storedAnnotations = await browserStorage.getByUrl<S>(url);
 
-  const valid: DomAnnotation<M>[] = [];
-  const recoverable: DomAnnotation<M>[] = [];
+  const valid: RenderableAnnotation<M>[] = [];
+  const recoverable: RenderableAnnotation<M>[] = [];
   const unrecoverable: Annotation<M>[] = [];
 
   for (const stored of storedAnnotations) {
@@ -106,7 +106,7 @@ async function contentGet<M, S>(
 }
 
 async function contentSet<M, S>(
-  annotation: DomAnnotation<M>,
+  annotation: RenderableAnnotation<M>,
   codec: AnnoCodec<M, S>,
 ): Promise<void> {
   const storedAnnotations = await browserStorage.get<S>();

@@ -41,6 +41,33 @@ describe('content', () => {
   });
 
   describe('filter out', () => {
+    it('recovers annotations when DOM is restructured', async () => {
+      document.body.innerHTML = '<p>hello world</p>';
+      const annotation = annotate('hello world');
+      const store = createStore(annoOptionsTest);
+      await store.content.set(annotation);
+
+      document.body.innerHTML = '<div>hello world</div>';
+      const results = await store.content.get();
+
+      expect(results).toStrictEqual({
+        valid: [],
+        recoverable: [{
+          id: annotation.id,
+          version: annotation.version,
+          text: 'hello world',
+          originalUrl: annotation.originalUrl,
+          normalizedUrl: annotation.normalizedUrl,
+          annotationUrl: annotation.annotationUrl,
+          createdAt: annotation.createdAt,
+          range: expect.any(Range) as Range,
+          scrollElement: expect.any(Element) as Element,
+          metadata: { note: 'init', score: 0 },
+        }],
+        unrecoverable: [],
+      });
+    });
+
     it('annotations whose DOM nodes were removed', async () => {
       document.body.innerHTML = '<p>hello world</p>';
       const annotation = annotate('hello world');

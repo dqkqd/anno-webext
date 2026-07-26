@@ -11,7 +11,7 @@ import type {
   AnnoOptions,
   AnnoStore,
   Annotation,
-  DomAnnotation,
+  RenderableAnnotation,
 } from './types';
 import {
   createAnnotationUrl,
@@ -24,7 +24,7 @@ export function createAnno<M, S>(options: AnnoOptions<M, S>): Anno<M> {
   const highlightRegistry = createHighlightRegistry(options.cssClass);
 
   const content: AnnoContent<M> = {
-    annotate: async (): Promise<DomAnnotation<M> | undefined> => {
+    annotate: async (): Promise<RenderableAnnotation<M> | undefined> => {
       const annotation = annotate(options.metadata.init, highlightRegistry);
       if (!annotation) {
         return;
@@ -54,7 +54,7 @@ const STORE_FORMAT_VERSION = chrome.runtime.getManifest().version;
 function annotate<M>(
   createMetadata: () => M,
   highlightRegistry: AnnoHighlightRegistry,
-): DomAnnotation<M> | undefined {
+): RenderableAnnotation<M> | undefined {
   const selection = window.getSelection();
   if (!selection) {
     return;
@@ -76,7 +76,7 @@ async function restoreAnnotations<M>(
   store: AnnoStore<M>,
   highlightRegistry: AnnoHighlightRegistry,
 ): Promise<{
-  valid: DomAnnotation<M>[];
+  valid: RenderableAnnotation<M>[];
   invalid: Annotation<M>[];
 }> {
   // clear remaining inmemory annotations
@@ -100,7 +100,7 @@ async function restoreAnnotations<M>(
 }
 
 function scrollToAnnotation<M>(
-  annotations: DomAnnotation<M>[],
+  annotations: RenderableAnnotation<M>[],
 ) {
   const annotationId = getAnnotationIdFromUrl();
   if (!annotationId) {
@@ -124,7 +124,7 @@ function scrollToElement(element: Element): void {
 export function createAnnotationFromSelection<M>(
   selection: Selection,
   createMetadata: () => M,
-): DomAnnotation<M> | undefined {
+): RenderableAnnotation<M> | undefined {
   const range = selection.getRangeAt(0);
   if (range.collapsed) {
     return;

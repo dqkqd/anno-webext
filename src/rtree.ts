@@ -1,5 +1,5 @@
 import RBush from 'rbush';
-import { DomAnnotation, DomAnnotationQueryOptions } from './types';
+import { RenderableAnnotation, DomAnnotationQueryOptions } from './types';
 
 const domAnnotationsRegistry = new RBush();
 
@@ -8,14 +8,14 @@ type RTreeAnnotation<M> = {
   maxX: number;
   minY: number;
   maxY: number;
-  data: DomAnnotation<M>;
+  data: RenderableAnnotation<M>;
 };
 
 export const rtree = {
   clear: (): void => {
     domAnnotationsRegistry.clear();
   },
-  record: <M>(annotation: DomAnnotation<M>): void => {
+  record: <M>(annotation: RenderableAnnotation<M>): void => {
     const rect = annotation.range.getBoundingClientRect();
     domAnnotationsRegistry.insert({
       minX: rect.left,
@@ -25,13 +25,13 @@ export const rtree = {
       data: annotation,
     });
   },
-  query: <M>(option: DomAnnotationQueryOptions): DomAnnotation<M>[] => {
+  query: <M>(option: DomAnnotationQueryOptions): RenderableAnnotation<M>[] => {
     const res = domAnnotationsRegistry.search({
       minX: option.x,
       minY: option.y,
       maxX: option.x,
       maxY: option.y,
     }) as RTreeAnnotation<M>[];
-    return res.map((r: { data: DomAnnotation<M> }) => r.data);
+    return res.map((r: { data: RenderableAnnotation<M> }) => r.data);
   },
 };

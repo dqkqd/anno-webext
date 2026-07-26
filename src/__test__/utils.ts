@@ -2,7 +2,7 @@ import { vi } from 'vitest';
 import { createAnnotationFromSelection } from '../anno';
 import { getRangeByText } from '../finder';
 import type { StoredAnnotations } from '../store';
-import type { AnnoOptions, DomAnnotation } from '../types';
+import type { AnnoOptions, RenderableAnnotation } from '../types';
 
 export type TestMeta = { note: string; score: number };
 export type TestMetaStorable = { note: string; score: string };
@@ -14,7 +14,7 @@ export const annoOptionsTest: AnnoOptions<TestMeta, TestMetaStorable> = {
   },
 };
 
-export function annotate(text: string): DomAnnotation<TestMeta> {
+export function annotate(text: string): RenderableAnnotation<TestMeta> {
   const range = getRangeByText(document.body, text)!;
   const selection = window.getSelection()!;
   selection.removeAllRanges();

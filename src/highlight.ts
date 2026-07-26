@@ -1,8 +1,8 @@
-import { DomAnnotation } from './types';
+import { RenderableAnnotation } from './types';
 
 export type AnnoHighlightRegistry = {
   get: () => Highlight;
-  set: <M>(annotation: DomAnnotation<M>) => void;
+  set: <M>(annotation: RenderableAnnotation<M>) => void;
   clear: () => void;
 };
 
@@ -28,7 +28,7 @@ export function createHighlightRegistry(
     return highlightRegistry.get(annotationClass) ?? new Highlight();
   }
 
-  function set<M>(annotation: DomAnnotation<M>) {
+  function set<M>(annotation: RenderableAnnotation<M>) {
     const highlights = get();
     highlights.add(annotation.range);
     highlightRegistry.set(annotationClass, highlights);
