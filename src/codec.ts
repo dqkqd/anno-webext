@@ -27,14 +27,6 @@ export function createCodec<M, S>(options: AnnoOptions<M, S>): AnnoCodec<M, S> {
       };
     },
 
-    decodeNonRenderable: (stored: StoredAnnotation<S>): Annotation<M> => {
-      return {
-        ...stored,
-        createdAt: new Date(stored.createdAt),
-        metadata: metadata.decode(stored.metadata),
-      };
-    },
-
     decode: (
       stored: StoredAnnotation<S>,
     ): RenderableAnnotation<M> | undefined => {
@@ -55,6 +47,14 @@ export function createCodec<M, S>(options: AnnoOptions<M, S>): AnnoCodec<M, S> {
         createdAt: new Date(stored.createdAt),
         // scroll element (if exist) must be `Element`
         scrollElement: scrollElement as Element,
+        metadata: metadata.decode(stored.metadata),
+      };
+    },
+
+    decodeNonRenderable: (stored: StoredAnnotation<S>): Annotation<M> => {
+      return {
+        ...stored,
+        createdAt: new Date(stored.createdAt),
         metadata: metadata.decode(stored.metadata),
       };
     },
