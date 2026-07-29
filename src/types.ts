@@ -118,7 +118,9 @@ export type ResolveAnnoOptions<Memory, Storable> = Required<
 >;
 
 export type RenderableAnnotationQueryOptions = {
+  /** Viewport-relative x coordinate (e.g. MouseEvent.clientX). */
   x: number;
+  /** Viewport-relative y coordinate (e.g. MouseEvent.clientY). */
   y: number;
 };
 

@@ -20,22 +20,26 @@ export const rtree = {
   },
   record: <M>(annotation: RenderableAnnotation<M>): void => {
     const rect = annotation.range.getBoundingClientRect();
+    const scrollX = window.scrollX;
+    const scrollY = window.scrollY;
     domAnnotationsRegistry.insert({
-      minX: rect.left,
-      maxX: rect.right,
-      minY: rect.top,
-      maxY: rect.bottom,
+      minX: rect.left + scrollX,
+      maxX: rect.right + scrollX,
+      minY: rect.top + scrollY,
+      maxY: rect.bottom + scrollY,
       data: annotation,
     });
   },
   query: <M>(
     option: RenderableAnnotationQueryOptions,
   ): RenderableAnnotation<M>[] => {
+    const scrollX = window.scrollX;
+    const scrollY = window.scrollY;
     const res = domAnnotationsRegistry.search({
-      minX: option.x,
-      minY: option.y,
-      maxX: option.x,
-      maxY: option.y,
+      minX: option.x + scrollX,
+      minY: option.y + scrollY,
+      maxX: option.x + scrollX,
+      maxY: option.y + scrollY,
     }) as RTreeAnnotation<M>[];
     return res.map((r: { data: RenderableAnnotation<M> }) => r.data);
   },
