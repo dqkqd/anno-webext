@@ -24,6 +24,9 @@ export function createStore<M, S>(
       set: async (annotation) => {
         return await contentSet(annotation, codec);
       },
+      remove: async (annotationId: UUID) => {
+        return await remove(annotationId);
+      },
     },
     popup: {
       get: async () => {
@@ -149,4 +152,18 @@ async function popupUpdateMetadata<M, S>(
   await browserStorage.set(storedAnnotations);
 
   return codec.decodeNonRenderable(stored);
+}
+
+async function remove<S>(annotationId: UUID) {
+  const storedAnnotations = await browserStorage.get<S>();
+  for (const [url, annotations] of Object.entries(storedAnnotations)) {
+    const filteredAnnotations = annotations.filter((a) =>
+      a.id !== annotationId
+    );
+    if (filteredAnnotations.length !== annotations.length) {
+      storedAnnotations[url] = filteredAnnotations;
+      await browserStorage.set(storedAnnotations);
+      return;
+    }
+  }
 }

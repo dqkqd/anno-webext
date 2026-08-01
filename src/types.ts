@@ -139,6 +139,11 @@ export type AnnoContent<M> = {
   >;
 
   /**
+   * Remove an annotation
+   */
+  remove: (annotationId: UUID) => Promise<void>;
+
+  /**
    * Query annotations. At the moment, only the current mouse position
    *  is supporte.
    */
@@ -183,6 +188,7 @@ export type AnnoStore<M> = {
   content: {
     get: () => Promise<AnnoStoreContentGet<M>>;
     set: (annotation: RenderableAnnotation<M>) => Promise<void>;
+    remove: (annotationId: UUID) => Promise<void>;
   };
   popup: {
     get: () => Promise<Annotations<M>>;

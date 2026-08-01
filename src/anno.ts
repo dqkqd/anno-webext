@@ -1,3 +1,4 @@
+import { UUID } from 'crypto';
 import {
   type AnnoHighlightRegistry,
   createHighlightRegistry,
@@ -43,6 +44,9 @@ export function createAnno<M, S>(options?: AnnoOptions<M, S>): Anno<M> {
     },
     restore: async () => {
       return await restoreAnnotations(store, highlightRegistry);
+    },
+    remove: async (annotationId: UUID) => {
+      return await store.content.remove(annotationId);
     },
     query: rtree.query,
   };
