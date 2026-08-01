@@ -124,24 +124,57 @@ export type RenderableAnnotationQueryOptions = {
   y: number;
 };
 
+/**
+ * The annotation functionalities that can be used in content script
+ */
 export type AnnoContent<M> = {
+  /**
+   * Annotate the current selected text
+   */
   annotate: () => Promise<RenderableAnnotation<M> | undefined>;
+
+  /**
+   * Restore all annotations on a page
+   */
   restore: () => Promise<
     { valid: RenderableAnnotation<M>[]; invalid: Annotation<M>[] }
   >;
+
+  /**
+   * Remove an annotation
+   */
+  remove: (annotationId: UUID) => Promise<void>;
+
+  /**
+   * Query annotations. At the moment, only the current mouse position
+   *  is supported.
+   */
   query: (
     options: RenderableAnnotationQueryOptions,
   ) => RenderableAnnotation<M>[];
 };
 
+/**
+ * The annotation functionalities that can be used in content script
+ */
 export type AnnoPopup<M> = {
+  /**
+   * Get all the annotations
+   */
   get: () => Promise<Annotations<M>>;
+
+  /**
+   * Update the metadata for an annotation
+   */
   updateMetadata: (
     annotationId: UUID,
     updateFn: (m: M) => M,
   ) => Promise<Annotation<M>>;
 };
 
+/**
+ * The annotation that maintain functions for content script and popup
+ */
 export type Anno<M> = {
   content: AnnoContent<M>;
   popup: AnnoPopup<M>;
@@ -157,6 +190,7 @@ export type AnnoStore<M> = {
   content: {
     get: () => Promise<AnnoStoreContentGet<M>>;
     set: (annotation: RenderableAnnotation<M>) => Promise<void>;
+    remove: (annotationId: UUID) => Promise<void>;
   };
   popup: {
     get: () => Promise<Annotations<M>>;

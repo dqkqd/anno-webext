@@ -248,6 +248,19 @@ describe('content', () => {
       }
     `);
   });
+
+  it('remove annotation', async () => {
+    document.body.innerHTML = '<p>hello world1</p><p>hello world2</p>';
+    const a = annotate('hello world1');
+    await store.content.set(a);
+    await store.content.remove(a.id);
+    const results = await store.content.get();
+    expect(results).toStrictEqual({
+      valid: [],
+      recoverable: [],
+      unrecoverable: [],
+    });
+  });
 });
 
 describe('popup', () => {
