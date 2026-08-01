@@ -127,7 +127,7 @@ export type RenderableAnnotationQueryOptions = {
  */
 export type AnnoContent<M> = {
   /**
-   * Annotate the currenct selected text
+   * Annotate the current selected text
    */
   annotate: () => Promise<RenderableAnnotation<M> | undefined>;
 
@@ -145,7 +145,7 @@ export type AnnoContent<M> = {
 
   /**
    * Query annotations. At the moment, only the current mouse position
-   *  is supporte.
+   *  is supported.
    */
   query: (
     options: RenderableAnnotationQueryOptions,
