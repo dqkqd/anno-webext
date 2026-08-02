@@ -140,8 +140,6 @@ export function createAnnotationFromSelection<M>(
   createMetadata: () => M,
 ): RenderableAnnotation<M> | undefined {
   const range = selection.getRangeAt(0);
-  // TODO: user can select backward and the range still exist right?
-  // Might need a test for this
   if (range.collapsed) {
     return;
   }
