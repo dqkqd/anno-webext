@@ -31,7 +31,7 @@ export function createHighlightRegistry(
   }
 
   function clear() {
-    highlightRegistry.clear();
+    highlightRegistry.delete(registryName);
   }
 
   return { get, set, clear };
