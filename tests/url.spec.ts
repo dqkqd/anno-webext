@@ -1,5 +1,9 @@
 import { expect, test } from './fixtures';
-import { annotateText, expectedToBeAnnotated } from './utils';
+import {
+  annotateText,
+  expectedToBeAnnotated,
+  waitForAnnotationsDom,
+} from './utils';
 
 test('annotations normalized with query params', async ({ annotatedUrls, context }) => {
   const page = await context.newPage();
@@ -59,11 +63,25 @@ test('annotations isolated per url', async ({ annotatedUrls, context }) => {
   });
   await expectedToBeAnnotated(page, expect, ['One page']);
 
-  // Visit page 2 - annotation from page 1 should not appear
+  // Create annotation on page 2
   await page.goto(urls[1]);
-  // TODO: check that there is no annotation on page 2
+  await annotateText(page, (document) => {
+    const p = document.querySelector('p')!;
+    const range = document.createRange();
+    range.setStart(p.firstChild!, 0);
+    range.setEnd(p.firstChild!, 8);
+    return range;
+  });
+  await expectedToBeAnnotated(page, expect, ['Two page']);
 
-  // Go back to page 1 - annotation should still be restored
+  // page 1's annotation must not leak into page 2
+  await waitForAnnotationsDom(page);
+  await expect(page.getByText('Two page')).toHaveCount(2);
+  await expect(page.getByText('One page')).not.toBeVisible();
+
+  // Go back to page 1 - only its own annotation is restored
   await page.goto(urls[0]);
-  await expectedToBeAnnotated(page, expect, ['One page']);
+  await waitForAnnotationsDom(page);
+  await expect(page.getByText('One page')).toHaveCount(2);
+  await expect(page.getByText('Two page')).not.toBeVisible();
 });
