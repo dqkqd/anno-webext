@@ -116,6 +116,34 @@ describe('createCodec', () => {
       `);
     });
 
+    it('returns unrecoverable when text only exists in non-rendered content', () => {
+      document.body.innerHTML = '<p>hello world</p>';
+      const annotation = annotate('hello');
+      const stored = codec.encode(annotation);
+      // the text moved out of the rendered body, now only inside a script
+      document.head.innerHTML = '<script>const text = "hello";</script>';
+      document.body.innerHTML = '<div>gone</div>';
+      const decoded = codec.decode(stored);
+
+      expect(decoded.kind).toBe('unrecoverable');
+    });
+
+    it('recovers text from body when non-rendered content also matches', () => {
+      document.body.innerHTML = '<p>hello world</p>';
+      const annotation = annotate('hello');
+      const stored = codec.encode(annotation);
+      document.head.innerHTML = '<script>const text = "hello";</script>';
+      document.body.innerHTML = '<div>goodbye <b>hello</b> again</div>';
+      const decoded = codec.decode(stored);
+
+      if (decoded.kind !== 'recoverable') {
+        throw new Error(`expected recoverable, got ${decoded.kind}`);
+      }
+      expect(decoded.annotation.range.startContainer).toBe(
+        document.querySelector('b')!.firstChild,
+      );
+    });
+
     it('returns unrecoverable when XPath is stale and text is gone', () => {
       document.body.innerHTML = '<p>hello world</p>';
       const annotation = annotate('hello');

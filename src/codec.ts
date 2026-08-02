@@ -60,7 +60,8 @@ export function createCodec<M, S>(
 
     // The annotation is not valid, which means the DOM xpath is stale and it now point to a different node, or not exist anymore.
     // We try to search by the stored text first, to get the matching node first.
-    // TODO: should we search the whole body?
+    // Search body only: annotations are selections of rendered text, which
+    // never lives outside <body> (script/style/title are not rendered).
     const recoverableRange = getRangeByText(document.body, stored.text);
     if (recoverableRange) {
       return {
