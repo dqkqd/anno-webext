@@ -1,4 +1,4 @@
-import { vi } from 'vitest';
+import { UUID } from 'crypto';
 import { getRangeByText } from '../finder';
 import { resolveOptions } from '../options';
 import type {
@@ -11,49 +11,37 @@ import { createChromeMock } from './browser';
 /**
  * Test helpers for consumers of anno-webext.
  *
- * `initAnnoTest()` installs in-memory stand-ins for the browser APIs the
- * library reads at module-evaluation time — `chrome.runtime.getManifest()`
- * (see `anno.ts`) and `CSS.highlights` (see `highlight.ts`) — plus a mock
+ * `createAnnoTest()` installs in-memory stand-ins for the browser APIs the
+ * library needs (`chrome.*`, `CSS.highlights`) plus a mock
  * `chrome.storage.local` for persistence.
  *
- * It must run BEFORE importing the library (or `anno-webext/testing/factory`,
- * which imports it). In vitest, call it from a `setupFiles` module; in other
- * runners, from the earliest possible hook.
+ * Call it from a vitest `setupFiles` module, before the library is imported:
  *
- * The mock chrome is internal: tests interact with the library through its
- * public API (`createAnno().content.*`); `initAnnoTest()` returns `reset()`
- * and `annotate()`.
+ * ```ts
+ * export const { annotate, reset, options } = await createAnnoTest({...});
+ * beforeEach(reset);
+ * ```
  */
 
 type AnnotateOptions = {
   root?: Node;
-  /** Frozen clock for `createdAt`; strings are converted via `new Date`. */
-  now?: Date | string;
-  /**
-   * Replaces `crypto.randomUUID` for this annotation: the id becomes
-   * `00000000-0000-0000-0000-{uuid padded to 12 digits}`.
-   */
-  uuid?: number;
 };
 
 type AnnoTest<M, S> = {
-  /**
-   * Restores the env to its just-installed state: storage back to the
-   * seeded contents, highlights registry cleared, uuid counter reset.
-   */
+  /** Resets the env: storage cleared, highlights registry cleared, id counter reset. */
   reset: () => void;
 
-  /**
-   * Resolved annotation options
-   */
+  /** Resolved annotation options. */
   options: ResolveAnnoOptions<M, S>;
   /**
-   * Finds `text` in the DOM (normalized search over `options.root`), selects
-   * it, and builds an in-memory annotation from the selection. Metadata comes
-   * from `anno.metadata.init`. When `now` is given, the clock is frozen to it
-   * (vitest `vi.setSystemTime`) so `createdAt` is deterministic. When `uuid`
-   * is given, `crypto.randomUUID` is replaced for this annotation, so the id
-   * is deterministic.
+   * Finds `text` in the DOM (normalized search over `root`), selects it, and
+   * builds an in-memory annotation from the selection. Metadata comes from
+   * `metadata.init`. The id is always deterministic
+   * (`00000000-...-000000000001`, `...0002`, ...), injected into
+   * `createAnnotationFromSelection` from an internal counter reset on
+   * `reset()` — no mocks, so userland `crypto.randomUUID` mocks stay intact.
+   * `createdAt` is the real time — freeze the clock with `vi.setSystemTime`
+   * for deterministic snapshots.
    */
   annotate: (
     text: string,
@@ -102,49 +90,46 @@ export async function createAnnoTest<M, S>(
 
   // Imported after the env is installed: `anno.ts` reads the globals at
   // module-evaluation time.
-  const { createAnnotationFromSelection } = await import('./factory');
+  const anno = await import('../anno');
+
+  let nextId = 0;
+
+  // Deterministic counter ids
+  function nextUuid(): UUID {
+    nextId++;
+    return `00000000-0000-0000-0000-${
+      String(nextId).padStart(12, '0')
+    }` as UUID;
+  }
 
   function annotate(
     text: string,
     annotateOptions: AnnotateOptions = {},
   ): RenderableAnnotation<M> | undefined {
-    const { root = document.body, now, uuid } = annotateOptions;
-    if (now) {
-      vi.setSystemTime(typeof now === 'string' ? new Date(now) : now);
+    const { root = document.body } = annotateOptions;
+    const range = getRangeByText(root, text);
+    if (!range) {
+      return;
     }
-    const uuidSpy = uuid !== undefined
-      ? vi.spyOn(crypto, 'randomUUID').mockReturnValueOnce(
-        `00000000-0000-0000-0000-${String(uuid).padStart(12, '0')}`,
-      )
-      : undefined;
-
-    try {
-      const range = getRangeByText(root, text);
-      if (!range) {
-        return;
-      }
-      const selection = window.getSelection();
-      if (!selection) {
-        return;
-      }
-      selection.removeAllRanges();
-      selection.addRange(range);
-      return createAnnotationFromSelection(
-        selection,
-        resolvedOptions.metadata.init,
-      );
-    } finally {
-      if (now) {
-        vi.useRealTimers();
-      }
-      uuidSpy?.mockRestore();
+    const selection = window.getSelection();
+    if (!selection) {
+      return;
     }
+    selection.removeAllRanges();
+    selection.addRange(range);
+    const annotation = anno.createAnnotationFromSelection(
+      selection,
+      resolvedOptions.metadata.init,
+      nextUuid(),
+    );
+    return annotation;
   }
 
   return {
     annotate,
     options: resolvedOptions,
     reset: () => {
+      nextId = 0;
       resetChrome();
       installedRegistry?.clear();
     },

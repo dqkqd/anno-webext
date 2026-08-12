@@ -138,19 +138,19 @@ function scrollToElement(element: Element): void {
 export function createAnnotationFromSelection<M>(
   selection: Selection,
   createMetadata: () => M,
+  uuid: UUID = crypto.randomUUID(),
 ): RenderableAnnotation<M> | undefined {
   const range = selection.getRangeAt(0);
   if (range.collapsed) {
     return;
   }
 
-  const id = crypto.randomUUID();
   const originalUrl = location.href;
   const normalizedUrl = normalizeUrl(originalUrl);
-  const annotationUrl = createAnnotationUrl(normalizedUrl, id);
+  const annotationUrl = createAnnotationUrl(normalizedUrl, uuid);
 
   return {
-    id,
+    id: uuid,
     version: STORE_FORMAT_VERSION,
     text: normalizeText(range.toString()),
     originalUrl,

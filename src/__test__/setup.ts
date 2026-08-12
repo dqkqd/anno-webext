@@ -1,4 +1,4 @@
-import { beforeEach } from 'vitest';
+import { beforeEach, vi } from 'vitest';
 import { createAnnoTest } from '../testing';
 
 export const { annotate, reset, options } = await createAnnoTest({
@@ -12,5 +12,8 @@ export const { annotate, reset, options } = await createAnnoTest({
   },
   cssRegistry: 'test-highlight',
 });
+
+// deterministic `createdAt` for snapshots
+vi.setSystemTime(new Date('2026-07-26T00:00:00.000Z'));
 
 beforeEach(reset);

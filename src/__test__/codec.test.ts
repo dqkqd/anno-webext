@@ -9,10 +9,7 @@ describe('createCodec', () => {
   describe('encode', () => {
     it('converts RenderableAnnotation to StoredAnnotation', () => {
       document.body.innerHTML = '<p>hello world</p>';
-      const annotation = annotate('hello', {
-        now: '2026-07-26T00:00:00.000Z',
-        uuid: 1,
-      })!;
+      const annotation = annotate('hello')!;
       const stored = codec.encode(annotation);
 
       expect(stored).toMatchInlineSnapshot(`
@@ -42,10 +39,7 @@ describe('createCodec', () => {
   describe('decodeNonRenderable', () => {
     it('converts StoredAnnotation to Annotation', () => {
       document.body.innerHTML = '<p>hello world</p>';
-      const annotation = annotate('hello', {
-        now: '2026-07-26T00:00:00.000Z',
-        uuid: 1,
-      })!;
+      const annotation = annotate('hello')!;
       const stored = codec.encode(annotation);
       const decoded = codec.decodeNonRenderable(stored);
 
@@ -70,10 +64,7 @@ describe('createCodec', () => {
   describe('decode', () => {
     it('returns valid for intact XPath with matching text', () => {
       document.body.innerHTML = '<p>hello world</p>';
-      const annotation = annotate('hello', {
-        now: '2026-07-26T00:00:00.000Z',
-        uuid: 1,
-      })!;
+      const annotation = annotate('hello')!;
       const stored = codec.encode(annotation);
       const decoded = codec.decode(stored);
 
@@ -100,10 +91,7 @@ describe('createCodec', () => {
 
     it('returns recoverable when XPath is stale but text exists', () => {
       document.body.innerHTML = '<p>hello world</p>';
-      const annotation = annotate('hello', {
-        now: '2026-07-26T00:00:00.000Z',
-        uuid: 1,
-      })!;
+      const annotation = annotate('hello')!;
       const stored = codec.encode(annotation);
       document.body.innerHTML = '<div>hello</div>';
       const decoded = codec.decode(stored);
@@ -131,10 +119,7 @@ describe('createCodec', () => {
 
     it('returns unrecoverable when text only exists in non-rendered content', () => {
       document.body.innerHTML = '<p>hello world</p>';
-      const annotation = annotate('hello', {
-        now: '2026-07-26T00:00:00.000Z',
-        uuid: 1,
-      })!;
+      const annotation = annotate('hello')!;
       const stored = codec.encode(annotation);
       // the text moved out of the rendered body, now only inside a script
       document.head.innerHTML = '<script>const text = "hello";</script>';
@@ -146,10 +131,7 @@ describe('createCodec', () => {
 
     it('recovers text from body when non-rendered content also matches', () => {
       document.body.innerHTML = '<p>hello world</p>';
-      const annotation = annotate('hello', {
-        now: '2026-07-26T00:00:00.000Z',
-        uuid: 1,
-      })!;
+      const annotation = annotate('hello')!;
       const stored = codec.encode(annotation);
       document.head.innerHTML = '<script>const text = "hello";</script>';
       document.body.innerHTML = '<div>goodbye <b>hello</b> again</div>';
@@ -167,10 +149,7 @@ describe('createCodec', () => {
 
     it('returns unrecoverable when XPath is stale and text is gone', () => {
       document.body.innerHTML = '<p>hello world</p>';
-      const annotation = annotate('hello', {
-        now: '2026-07-26T00:00:00.000Z',
-        uuid: 1,
-      })!;
+      const annotation = annotate('hello')!;
       const stored = codec.encode(annotation);
       document.body.innerHTML = '<div>goodbye</div>';
       const decoded = codec.decode(stored);
@@ -197,10 +176,7 @@ describe('createCodec', () => {
 
     it('returns unrecoverable when text does not match and cannot be found', () => {
       document.body.innerHTML = '<p>hello world</p>';
-      const annotation = annotate('hello', {
-        now: '2026-07-26T00:00:00.000Z',
-        uuid: 1,
-      })!;
+      const annotation = annotate('hello')!;
       const stored = codec.encode(annotation);
       document.body.querySelector('p')!.firstChild!.textContent = 'changed';
       const decoded = codec.decode(stored);
@@ -227,10 +203,7 @@ describe('createCodec', () => {
 
     it('throws when offset exceeds node length', () => {
       document.body.innerHTML = '<p>hello world</p>';
-      const annotation = annotate('hello', {
-        now: '2026-07-26T00:00:00.000Z',
-        uuid: 1,
-      })!;
+      const annotation = annotate('hello')!;
       const stored = codec.encode(annotation);
       stored.range.startOffset = 9999;
 
