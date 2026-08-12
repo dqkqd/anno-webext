@@ -22,7 +22,10 @@ export type MockChrome<S> = {
   runtime: { getManifest: () => { version: string } };
 };
 
-export function createChromeMock<S>(): { reset: () => void } {
+export function createChromeMock<S>(): {
+  reset: () => void;
+  chrome: MockChrome<S>;
+} {
   let state: AnnoStorage<S> = {};
 
   const local: MockChromeStorageLocal<S> = {
@@ -61,6 +64,7 @@ export function createChromeMock<S>(): { reset: () => void } {
   (globalThis as { chrome?: MockChrome<S> }).chrome = chrome;
 
   return {
+    chrome,
     reset: () => {
       state = {};
     },

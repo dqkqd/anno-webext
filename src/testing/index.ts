@@ -1,11 +1,15 @@
 import { UUID } from 'crypto';
 import { getRangeByText } from '../finder';
 import { resolveOptions } from '../options';
+import { storeSet } from '../store';
 import type {
   AnnoOptions,
   RenderableAnnotation,
   ResolveAnnoOptions,
+  StoredAnnotation,
 } from '../types';
+import { createAnnotationUrl, normalizeUrl } from '../url';
+import { normalizeText } from '../utils';
 import { createChromeMock } from './browser';
 
 /**
@@ -27,12 +31,25 @@ type AnnotateOptions = {
   root?: Node;
 };
 
+type CreateStoredAnnotationOptions<M> = {
+  text: string;
+  metadata: M;
+  /** Defaults to `location.href`. */
+  url?: string;
+};
+
 type AnnoTest<M, S> = {
   /** Resets the env: storage cleared, highlights registry cleared, id counter reset. */
   reset: () => void;
 
   /** Resolved annotation options. */
   options: ResolveAnnoOptions<M, S>;
+  /**
+   * Creates a DOM-less annotation and stores it immediately (popup flows).
+   */
+  createStoredAnnotation: (
+    options: CreateStoredAnnotationOptions<M>,
+  ) => Promise<StoredAnnotation<S>>;
   /**
    * Finds `text` in the DOM (normalized search over `root`), selects it, and
    * builds an in-memory annotation from the selection. Metadata comes from
@@ -84,7 +101,7 @@ export async function createAnnoTest<M, S>(
   options?: AnnoOptions<M, S>,
 ): Promise<AnnoTest<M, S>> {
   const resolvedOptions = resolveOptions(options);
-  const { reset: resetChrome } = createChromeMock();
+  const { reset: resetChrome, chrome } = createChromeMock<S>();
 
   const installedRegistry = installCssHighlightsPolyfill();
 
@@ -100,6 +117,34 @@ export async function createAnnoTest<M, S>(
     return `00000000-0000-0000-0000-${
       String(nextId).padStart(12, '0')
     }` as UUID;
+  }
+
+  async function createStoredAnnotation(
+    options: CreateStoredAnnotationOptions<M>,
+  ): Promise<StoredAnnotation<S>> {
+    const { text, metadata, url = location.href } = options;
+    const id = nextUuid();
+    const normalizedUrl = normalizeUrl(url);
+    const stored: StoredAnnotation<S> = {
+      id,
+      version: chrome.runtime.getManifest().version,
+      text: normalizeText(text),
+      originalUrl: url,
+      normalizedUrl,
+      annotationUrl: createAnnotationUrl(normalizedUrl, id),
+      createdAt: new Date().toISOString(),
+      metadata: resolvedOptions.metadata.encode(metadata),
+      // Dummy range that resolves to no node, so content flows classify the
+      // annotation as unrecoverable instead of crashing.
+      range: {
+        startContainerXPath: '/anno/range[1]',
+        startOffset: 0,
+        endContainerXPath: '/anno/range[1]',
+        endOffset: 0,
+      },
+    };
+    await storeSet(stored);
+    return stored;
   }
 
   function annotate(
@@ -127,6 +172,7 @@ export async function createAnnoTest<M, S>(
 
   return {
     annotate,
+    createStoredAnnotation,
     options: resolvedOptions,
     reset: () => {
       nextId = 0;
