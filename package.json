@@ -19,9 +19,9 @@
   ],
   "type": "module",
   "scripts": {
-    "prepare": "vite build && dts-bundle-generator --config dts-bundle-generator.config.json",
-    "build": "vite build && dts-bundle-generator --config dts-bundle-generator.config.json",
-    "build:debug": "vite build --minify=false --sourcemap=inline && dts-bundle-generator --config dts-bundle-generator.config.json",
+    "prepare": "vite build && vite build -c vite.testing.config.ts && dts-bundle-generator --config dts-bundle-generator.config.json",
+    "build": "vite build && vite build -c vite.testing.config.ts && dts-bundle-generator --config dts-bundle-generator.config.json",
+    "build:debug": "vite build --minify=false --sourcemap=inline && vite build -c vite.testing.config.ts --minify=false --sourcemap=inline && dts-bundle-generator --config dts-bundle-generator.config.json",
     "build:e2e": "npm run build && vite build -c vite.config.e2e.ts",
     "build:e2e:debug": "npm run build:debug && vite build -c vite.config.e2e.ts --minify=false --sourcemap=inline",
     "lint": "npm run build && eslint .",
@@ -40,11 +40,17 @@
     ".": {
       "types": "./dist/index.d.ts",
       "import": "./dist/anno-webext.js"
+    },
+    "./testing": {
+      "types": "./dist/testing.d.ts",
+      "import": "./dist/testing.js"
     }
   },
   "files": [
     "./dist/anno-webext.js",
-    "./dist/index.d.ts"
+    "./dist/index.d.ts",
+    "./dist/testing.js",
+    "./dist/testing.d.ts"
   ],
   "engines": {
     "node": ">= 26",
