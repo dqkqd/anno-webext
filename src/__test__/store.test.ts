@@ -1,14 +1,20 @@
 import { describe, expect, it } from 'vitest';
 import { createStore } from '../store';
-import { annoOptionsTest, annotate, type TestMeta } from './utils';
+import { annotate, options } from './setup';
 
-const store = createStore(annoOptionsTest);
+const store = createStore(options);
 
 describe('content', () => {
   it('simple get and set', async () => {
     document.body.innerHTML = '<p>hello world1</p><p>hello world2</p>';
-    const a1 = annotate('hello world1');
-    const a2 = annotate('hello world2');
+    const a1 = annotate('hello world1', {
+      now: '2026-07-26T00:00:00.000Z',
+      uuid: 1,
+    })!;
+    const a2 = annotate('hello world2', {
+      now: '2026-07-26T00:00:00.000Z',
+      uuid: 2,
+    })!;
 
     await store.content.set(a1);
     await store.content.set(a2);
@@ -66,7 +72,10 @@ describe('content', () => {
   describe('filter out', () => {
     it('recovers annotations when DOM is restructured', async () => {
       document.body.innerHTML = '<p>hello world</p>';
-      const annotation = annotate('hello world');
+      const annotation = annotate('hello world', {
+        now: '2026-07-26T00:00:00.000Z',
+        uuid: 1,
+      })!;
       await store.content.set(annotation);
 
       document.body.innerHTML = '<div>hello world</div>';
@@ -98,7 +107,10 @@ describe('content', () => {
 
     it('annotations whose DOM nodes were removed', async () => {
       document.body.innerHTML = '<p>hello world</p>';
-      const annotation = annotate('hello world');
+      const annotation = annotate('hello world', {
+        now: '2026-07-26T00:00:00.000Z',
+        uuid: 1,
+      })!;
       await store.content.set(annotation);
 
       document.body.innerHTML = '';
@@ -128,7 +140,10 @@ describe('content', () => {
 
     it('annotations whose text does not match range', async () => {
       document.body.innerHTML = '<p>hello world</p>';
-      const annotation = annotate('hello world');
+      const annotation = annotate('hello world', {
+        now: '2026-07-26T00:00:00.000Z',
+        uuid: 1,
+      })!;
       await store.content.set(annotation);
 
       expect(await store.content.get()).toMatchInlineSnapshot(`
@@ -182,11 +197,17 @@ describe('content', () => {
 
     it('does not return annotations from other URLs', async () => {
       document.body.innerHTML = '<p>hello world</p>';
-      const a1 = annotate('hello world');
+      const a1 = annotate('hello world', {
+        now: '2026-07-26T00:00:00.000Z',
+        uuid: 1,
+      })!;
       await store.content.set(a1);
 
       document.body.innerHTML = '<p>hello world</p>';
-      const a2 = annotate('hello world');
+      const a2 = annotate('hello world', {
+        now: '2026-07-26T00:00:00.000Z',
+        uuid: 2,
+      })!;
       a2.normalizedUrl = 'https://other.com/page';
       await store.content.set(a2);
 
@@ -218,7 +239,10 @@ describe('content', () => {
 
   it('update annotation if it is already exist', async () => {
     document.body.innerHTML = '<p>hello world</p>';
-    const annotation = annotate('hello world');
+    const annotation = annotate('hello world', {
+      now: '2026-07-26T00:00:00.000Z',
+      uuid: 1,
+    })!;
     await store.content.set(annotation);
 
     annotation.metadata.note = 'new';
@@ -251,7 +275,10 @@ describe('content', () => {
 
   it('remove annotation', async () => {
     document.body.innerHTML = '<p>hello world1</p><p>hello world2</p>';
-    const a = annotate('hello world1');
+    const a = annotate('hello world1', {
+      now: '2026-07-26T00:00:00.000Z',
+      uuid: 1,
+    })!;
     await store.content.set(a);
     await store.content.remove(a.id);
     const results = await store.content.get();
@@ -271,11 +298,17 @@ describe('popup', () => {
 
   it('returns annotations grouped by URL', async () => {
     document.body.innerHTML = '<p>hello world</p>';
-    const a1 = annotate('hello world');
+    const a1 = annotate('hello world', {
+      now: '2026-07-26T00:00:00.000Z',
+      uuid: 1,
+    })!;
     a1.normalizedUrl = 'https://a.com/page';
 
     document.body.innerHTML = '<p>hello world</p>';
-    const a2 = annotate('hello world');
+    const a2 = annotate('hello world', {
+      now: '2026-07-26T00:00:00.000Z',
+      uuid: 2,
+    })!;
     a2.normalizedUrl = 'https://b.com/page';
 
     await store.content.set(a1);
@@ -319,8 +352,14 @@ describe('popup', () => {
 
   it('returns multiple annotations per URL', async () => {
     document.body.innerHTML = '<p>hello world</p>';
-    const a1 = annotate('hello world');
-    const a2 = annotate('hello world');
+    const a1 = annotate('hello world', {
+      now: '2026-07-26T00:00:00.000Z',
+      uuid: 1,
+    })!;
+    const a2 = annotate('hello world', {
+      now: '2026-07-26T00:00:00.000Z',
+      uuid: 2,
+    })!;
     await store.content.set(a1);
     await store.content.set(a2);
     const results = await store.popup.get();
@@ -360,10 +399,13 @@ describe('popup', () => {
 
   it('updates metadata and returns updated annotation', async () => {
     document.body.innerHTML = '<p>hello world</p>';
-    const annotation = annotate('hello world');
+    const annotation = annotate('hello world', {
+      now: '2026-07-26T00:00:00.000Z',
+      uuid: 1,
+    })!;
     await store.content.set(annotation);
 
-    function updateFn(m: TestMeta) {
+    function updateFn(m: ReturnType<typeof options.metadata.init>) {
       return { note: m.note + ' updated', score: m.score + 1 };
     }
 
