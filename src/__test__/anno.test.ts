@@ -1,6 +1,5 @@
 import { describe, expect, it } from 'vitest';
 import { createAnnotationFromSelection } from '../anno';
-import { annoOptionsTest } from './utils';
 
 describe('createAnnotationFromSelection', () => {
   it('annotates text selected backward (anchor after focus)', () => {
@@ -14,7 +13,7 @@ describe('createAnnotationFromSelection', () => {
 
     const annotation = createAnnotationFromSelection(
       selection,
-      annoOptionsTest.metadata.init,
+      () => {},
     );
 
     expect(annotation).toBeDefined();
@@ -34,7 +33,7 @@ describe('createAnnotationFromSelection', () => {
 
     const annotation = createAnnotationFromSelection(
       selection,
-      annoOptionsTest.metadata.init,
+      () => {},
     );
     expect(annotation).toBeUndefined();
   });

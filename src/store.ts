@@ -95,18 +95,22 @@ async function contentSet<M, S>(
   annotation: RenderableAnnotation<M>,
   codec: AnnoCodec<M, S>,
 ): Promise<void> {
-  const storedAnnotations = await browserStorage.get<S>();
-  const annotationsInUrl = storedAnnotations[annotation.normalizedUrl] ?? [];
-  const index = annotationsInUrl.findIndex((s) => s.id == annotation.id);
-
   const stored = codec.encode(annotation);
+  await storeSet(stored);
+}
+
+export async function storeSet<S>(stored: StoredAnnotation<S>) {
+  const storedAnnotations = await browserStorage.get<S>();
+  const annotationsInUrl = storedAnnotations[stored.normalizedUrl] ?? [];
+  const index = annotationsInUrl.findIndex((s) => s.id == stored.id);
+
   if (index === -1) {
     annotationsInUrl.push(stored);
   } else {
     annotationsInUrl[index] = stored;
   }
 
-  storedAnnotations[annotation.normalizedUrl] = annotationsInUrl;
+  storedAnnotations[stored.normalizedUrl] = annotationsInUrl;
   await browserStorage.set(storedAnnotations);
 }
 

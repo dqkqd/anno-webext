@@ -1,31 +1,19 @@
 import { beforeEach, vi } from 'vitest';
+import { createAnnoTest } from '../testing';
 
-let nextId = 0;
-let stubStorage: Record<string, unknown[]> = {};
-
-vi.stubGlobal('CSS', { highlights: new Map() });
-vi.stubGlobal('chrome', {
-  storage: {
-    local: {
-      get: vi.fn(() => Promise.resolve({ annotations: stubStorage })),
-      set: vi.fn(
-        ({ annotations }: { annotations: Record<string, unknown[]> }) => {
-          stubStorage = annotations;
-          return Promise.resolve();
-        },
-      ),
-    },
+export const { annotate, reset, options } = await createAnnoTest({
+  metadata: {
+    init: () => ({ note: 'init', score: 0 }),
+    encode: (m) => ({
+      note: m.note,
+      score: String(m.score).padStart(3, '0'),
+    }),
+    decode: (s) => ({ note: s.note, score: parseInt(s.score, 10) }),
   },
-  runtime: { getManifest: () => ({ version: '1.0.0' }) },
+  cssRegistry: 'test-highlight',
 });
 
+// deterministic `createdAt` for snapshots
 vi.setSystemTime(new Date('2026-07-26T00:00:00.000Z'));
 
-vi.spyOn(crypto, 'randomUUID').mockImplementation(() => {
-  nextId++;
-  return `00000000-0000-0000-0000-${String(nextId).padStart(12, '0')}`;
-});
-beforeEach(() => {
-  nextId = 0;
-  stubStorage = {};
-});
+beforeEach(reset);

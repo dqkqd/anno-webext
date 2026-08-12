@@ -9,6 +9,13 @@
       "output": {
         "exportReferencedTypes": false
       }
+    },
+    {
+      "filePath": "./src/testing/index.ts",
+      "outFile": "./dist/testing.d.ts",
+      "output": {
+        "exportReferencedTypes": false
+      }
     }
   ]
 }
