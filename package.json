@@ -58,7 +58,7 @@
     "@types/chrome": "^0.2.0",
     "@types/node": "^24.12.3",
     "@types/rbush": "^4.0.0",
-    "dprint": "^0.55.2",
+    "dprint": "^0.57.0",
     "esbuild": "^0.28.1",
     "eslint": "^10.5.0",
     "eslint-plugin-unicorn": "^73.0.0",
